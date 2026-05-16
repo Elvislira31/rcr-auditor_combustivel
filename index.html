@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>RCR Auditor v50.0 - Executive Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --rcr: #147b6a; --bg: #f0f2f5; --card: #ffffff; --text: #1e293b; --danger: #ff7675; --warning: #fdcb6e; --success: #00b894; --purple: #6c5ce7; }
+        body.dark-mode { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; }
+        .container { max-width: 98%; margin: auto; background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 10px solid var(--rcr); }
+        
+        /* NOVO: Estilos do Dashboard Executivo */
+        .dashboard-panel { display: none; background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        body.dark-mode .dashboard-panel { border-color: #334155; }
+        .dash-stats { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .dash-bar-container { display: flex; width: 100%; height: 24px; border-radius: 12px; overflow: hidden; background: #e2e8f0; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .dash-bar-segment { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+        .filter-panel { display: flex; flex-wrap: wrap; gap: 15px; background: rgba(20, 123, 106, 0.05); padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; align-items: center; }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
+        .filter-group label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--rcr); }
+        .filter-input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: var(--card); color: var(--text); outline: none; font-weight: bold; }
+
+        .dropzone { border: 2px dashed #cbd5e1; background: rgba(20, 123, 106, 0.05); padding: 30px; border-radius: 10px; cursor: pointer; text-align: center; margin-bottom: 20px; }
+        
+        .history-panel { display: none; background: #e2e8f0; border-left: 5px solid var(--rcr); padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: bold; align-items: center; justify-content: space-between; }
+        body.dark-mode .history-panel { background: #334155; }
+        
+        .table-header-info { display: none; justify-content: space-between; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--rcr); text-transform: uppercase; }
+        
+        .table-wrap { overflow-x: auto; max-height: 600px; border: 1px solid #e2e8f0; display: none; }
+        table { width: 100%; border-collapse: collapse; min-width: 1800px; font-size: 11px; table-layout: fixed; transition: all 0.3s ease; }
+        th { background: #f1f5f9; padding: 10px; border-bottom: 2px solid var(--rcr); position: sticky; top: 0; z-index: 10; color: #1e293b; transition: all 0.3s ease; }
+        .head-edit { width: 85%; border: 1px dashed #cbd5e1; background: transparent; text-align: center; font-weight: bold; text-transform: uppercase; color: inherit; transition: all 0.3s ease; }
+        
+        td { padding: 4px; border-bottom: 1px solid #eee; text-align: center; transition: all 0.3s ease; }
+        .cell-edit { width: 90%; border: 1px solid transparent; padding: 5px; text-align: center; font-size: 11px; border-radius: 4px; background: transparent; color: inherit; font-weight: bold; transition: all 0.3s ease; }
+        
+        .alert-critical { background: var(--danger) !important; color: white !important; }
+        .alert-attention { background: var(--warning) !important; color: #000 !important; }
+        .alert-hodo { border: 2px dashed var(--danger) !important; background: #ffeaa7 !important; color: #d63031 !important; }
+        .alert-transbordo { background: var(--purple) !important; color: white !important; font-weight: 900 !important; }
+        .alert-furo { background: #1e293b !important; color: #ff7675 !important; border: 2px dashed #ff7675 !important; font-weight: 900 !important; }
+
+        .btn-panel { margin-top: 25px; display: none; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 12px 30px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-main { background: var(--rcr); color: white; }
+        .btn-ajuste { background: #0984e3; color: white; }
+        .btn-limpar-memoria { background: #d63031; color: white; font-size: 10px; padding: 12px 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="color: var(--rcr); margin: 0;">RCR Auditor v50.0 - Painel Executivo</h2>
+        <button class="btn" style="background:#636e72; color:white; padding: 5px 15px;" onclick="document.body.classList.toggle('dark-mode')">🌓 MODO ESCURO</button>
+    </div>
+
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileIn').click()">
+        <b>Carregue o relatório HTML do Globus</b>
+        <p style="font-size:11px; color:#666; margin-top:5px;">O sistema avaliará a saúde financeira da frota e montará o painel executivo.</p>
+        <input type="file" id="fileIn" accept=".html,.htm" style="display:none">
+    </div>
+
+    <div class="dashboard-panel" id="dashboardPanel">
+        <div class="dash-stats">
+            <span style="color: var(--success);">🟢 Normal: <span id="dashNormalNum">0</span></span>
+            <span style="color: var(--warning);">🟡 Atenção: <span id="dashAttNum">0</span></span>
+            <span style="color: var(--danger);">🔴 Crítico: <span id="dashCritNum">0</span></span>
+        </div>
+        <div class="dash-bar-container">
+            <div id="barNormal" class="dash-bar-segment" style="background: var(--success); width: 0%;"></div>
+            <div id="barAttention" class="dash-bar-segment" style="background: var(--warning); width: 0%;"></div>
+            <div id="barCritical" class="dash-bar-segment" style="background: var(--danger); width: 0%;"></div>
+        </div>
+    </div>
+
+    <div class="history-panel" id="historyPanel">
+        <div>📊 Fechamento Geral (<span id="histData">--</span>): <span id="histMedia" style="color:var(--rcr);">-- Km/L</span></div>
+        <div id="histEvolucao">--</div>
+    </div>
+
+    <div class="filter-panel" id="filterPanel" style="display:none;">
+        <div class="filter-group" style="flex-grow: 2;">
+            <label>Pesquisa Rápida (Prefixo, Data, Bomba...)</label>
+            <input type="text" id="filtroTexto" class="filter-input" placeholder="Pesquisar frota..." onkeyup="filtrarTabela()">
+        </div>
+        <div class="filter-group">
+            <label>Auditoria de Rendimento (Km/L)</label>
+            <select id="filtroKm" class="filter-input" onchange="filtrarTabela()">
+                <option value="ALL">Visualizar Toda a Frota</option>
+                <option value="CRITICAL">🔴 Rendimento Crítico (Abaixo da Meta)</option>
+                <option value="ATTENTION">🟡 Em Atenção (Próximo do Limite)</option>
+                <option value="NORMAL">🟢 Rendimento Saudável</option>
+            </select>
+        </div>
+        <div class="filter-group" style="flex-grow: 0;">
+            <label>&nbsp;</label>
+            <button class="btn" style="background:#94a3b8; color:white; padding: 10px;" onclick="limparFiltros()">Limpar Filtros</button>
+        </div>
+    </div>
+
+    <div id="tableHeaderInfo" class="table-header-info">
+        <span>Filtros processados em tempo real</span>
+        <span>Abastecimentos Auditados: <span id="contadorLinhas" style="background: var(--rcr); color: white; padding: 2px 8px; border-radius: 12px;">0</span></span>
+    </div>
+
+    <div class="table-wrap" id="tableWrap">
+        <table id="mainTable">
+            <thead><tr id="headerRow"></tr></thead>
+            <tbody id="tBody"></tbody>
+        </table>
+    </div>
+
+    <div class="btn-panel" id="btnPanel">
+        <button class="btn btn-ajuste" id="btnAjuste" onclick="ajustarColunas()">↔️ Ajustar Colunas</button>
+        <button class="btn btn-main" onclick="exportarExcel()">Baixar Planilha Auditada (Excel)</button>
+        <button class="btn btn-limpar-memoria" onclick="limparMemoriaHodo()">Resetar Memória de Hodómetros</button>
+    </div>
+</div>
+
+<script>
+    if (localStorage.getItem('rcr_version') !== 'v50.0') {
+        localStorage.removeItem('rcr_auditor_layout');
+        localStorage.setItem('rcr_version', 'v50.0');
+    }
+
+    let db = [];
+    let colunasAjustadas = false;
+
+    const getMetaInfo = (pref) => {
+        let p = parseInt(pref);
+        if (p >= 1000 && p <= 1999) return { cat: "VAN", min: 7.0, tqMax: 90 }; 
+        if (p >= 2000 && p <= 4999) return { cat: "MICRO", min: 3.5, tqMax: 150 };
+        return { cat: "ONIBUS", min: 2.1, tqMax: 300 }; 
+    };
+
+    const defaultOrder = [
+        {key: 'pref', label: 'Prefixo'}, {key: 'data', label: 'Data'}, {key: 'hora', label: 'Hora'},
+        {key: 'tipo', label: 'T'}, {key: 'bb', label: 'Bb'}, {key: 'tq', label: 'Tq'},
+        {key: 'comb', label: 'Comb.'}, {key: 'hini', label: 'Hod. Ini'}, {key: 'hfin', label: 'Hod. Fin'},
+        {key: 'km', label: 'Km'}, {key: 'kml', label: 'Km/L'}
+    ];
+
+    window.onload = () => {
+        const saved = localStorage.getItem('rcr_auditor_layout');
+        const layout = saved ? JSON.parse(saved) : defaultOrder;
+        const headerRow = document.getElementById('headerRow');
+        headerRow.innerHTML = "";
+        layout.forEach(col => {
+            const th = document.createElement('th');
+            th.dataset.key = col.key;
+            th.innerHTML = `<input class="head-edit" value="${col.label}" readonly style="border:none;">`;
+            headerRow.appendChild(th);
+        });
+    };
+
+    document.getElementById('fileIn').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = (ev) => processar(ev.target.result);
+        reader.readAsText(e.target.files[0], 'ISO-8859-1');
+    });
+
+    function limparMemoriaHodo() {
+        if(confirm("Deseja apagar a memória de furos de garagem? (O sistema recomeçará a aprender os hodómetros a partir do próximo relatório)")){
+            localStorage.removeItem('rcr_memoria_hodo');
+            alert("Memória limpa com sucesso!");
+        }
+    }
+
+    // BASE DE LEITURA BLINDADA
+    function processar(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        
+        let pages = Array.from(doc.querySelectorAll(".pagina"));
+        if (pages.length === 0) { pages = [doc]; }
+
+        db = [];
+
+        pages.forEach(page => {
+            const allDivs = Array.from(page.querySelectorAll("div"));
+            let rowsY = {};
+            allDivs.forEach(div => {
+                let y = parseInt(div.style.top);
+                let x = parseInt(div.style.left);
+                let txt = div.innerText.trim();
+                if (isNaN(y) || isNaN(x) || !txt) return;
+                
+                let keyY = Object.keys(rowsY).find(k => Math.abs(k - y) <= 4);
+                if (!keyY) { keyY = y; rowsY[keyY] = []; }
+                rowsY[keyY].push({ x: x, txt: txt });
+            });
+
+            let headerY = Object.keys(rowsY).find(y => {
+                let text = rowsY[y].map(e => e.txt.toUpperCase()).join(' ');
+                return text.includes('COMB') && text.includes('KM') && text.includes('HORA');
+            });
+
+            if (!headerY) return; 
+
+            let headers = rowsY[headerY].map(e => ({ name: e.txt.toUpperCase().replace(/[^A-Z]/g, ''), x: e.x })).sort((a,b) => a.x - b.x);
+            let headerYInt = parseInt(headerY);
+
+            let maxDateY = 0;
+            Object.keys(rowsY).forEach(y => {
+                let hasDate = rowsY[y].some(e => /\d{2}\/\d{2}\/\d{4}/.test(e.txt));
+                if (hasDate && parseInt(y) > maxDateY) { maxDateY = parseInt(y); }
+            });
+
+            Object.keys(rowsY).forEach(y => {
+                let yInt = parseInt(y);
+                if (yInt <= headerYInt || (maxDateY > 0 && yInt > maxDateY + 5)) return;
+                let linha = rowsY[y].sort((a,b) => a.x - b.x);
+                let isLixo = linha.some(e => 
+                    e.txt.toUpperCase().includes('TOTAL') || 
+                    e.txt.toUpperCase().includes('PRAXIO') || 
+                    /\s-\s/.test(e.txt) || 
+                    /^[0-9]+\s+(VAN|ONIBUS|MICRO)/i.test(e.txt)
+                );
+                if (isLixo) return;
+                
+                let horaElem = linha.find(e => /\b\d{2}:\d{2}(:\d{2})?\b/.test(e.txt));
+                let dataElem = linha.find(e => /\d{2}\/\d{2}\/\d{4}/.test(e.txt));
+                if (!horaElem || !dataElem) return; 
+
+                let prefElem = linha.find(e => e.x < dataElem.x && /^\d+$/.test(e.txt.replace(/^0+/, '')));
+                if (!prefElem) prefElem = linha.find(e => /^\d+$/.test(e.txt));
+                let p = prefElem ? prefElem.txt.replace(/^0+/, '') : "";
+
+                let validCells = linha.filter(e => e !== dataElem && e !== prefElem);
+                let rowData = {};
+                validCells.forEach(cell => {
+                    let closestHeader = headers.reduce((prev, curr) => Math.abs(curr.x - cell.x) < Math.abs(prev.x - cell.x) ? curr : prev);
+                    rowData[closestHeader.name] = (rowData[closestHeader.name] ? rowData[closestHeader.name] + " " : "") + cell.txt;
+                });
+
+                const getStr = (names) => {
+                    for (let n of names) if (rowData[n] !== undefined) return rowData[n].replace(/\*/g, '').trim();
+                    return "";
+                };
+                const getNum = (names) => {
+                    let val = getStr(names).split(' ')[0];
+                    return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
+                };
+
+                let combReal = getNum(['COMB']);
+                let kmReal = getNum(['KM']);
+                let kmlGlobus = getNum(['KML']);
+                let kmlCalculado = combReal > 0 ? Math.round((kmReal / combReal) * 100) / 100 : kmlGlobus;
+
+                db.push({
+                    pref: p,
+                    data: dataElem.txt.split(' ')[0],
+                    hora: horaElem.txt.match(/(\d{1,2}):(\d{2})/) ? horaElem.txt.match(/(\d{1,2}):(\d{2})/)[0] + ":00" : "00:00:00",
+                    tipo: getStr(['T', 'TIPO']).toUpperCase().includes('E') ? 'E' : 'I',
+                    bb: getStr(['BB', 'BOMBA']).split(' ')[0],
+                    tq: getStr(['TQ', 'TANQUE']).split(' ')[0],
+                    comb: combReal,
+                    hini: getNum(['HODINI']),
+                    hfin: getNum(['HODFIN']),
+                    km: kmReal,
+                    kml: kmlCalculado,
+                    meta: getMetaInfo(p)
+                });
+            });
+        });
+        
+        let memoriaHodo = JSON.parse(localStorage.getItem('rcr_memoria_hodo')) || {};
+        
+        db.forEach(r => {
+            let p = r.pref;
+            r.furoGaragem = 0;
+            if (memoriaHodo[p] && r.hini > 0) {
+                let diferenca = r.hini - memoriaHodo[p].hfin;
+                if (diferenca > 3) { r.furoGaragem = diferenca; }
+            }
+            if (r.hfin > 0) {
+                if (!memoriaHodo[p] || r.hfin > memoriaHodo[p].hfin) {
+                    memoriaHodo[p] = { hfin: r.hfin, data: r.data };
+                }
+            }
+        });
+        
+        localStorage.setItem('rcr_memoria_hodo', JSON.stringify(memoriaHodo));
+
+        document.getElementById('dropzone').style.display = 'none';
+        document.getElementById('filterPanel').style.display = 'flex';
+        document.getElementById('tableHeaderInfo').style.display = 'flex';
+        
+        processarHistoricoSilencioso();
+        renderTable();
+    }
+
+    // NOVA FUNÇÃO: Atualizar o Dashboard Executivo
+    function atualizarDashboard() {
+        if (!db.length) return;
+        
+        let normal = 0, attention = 0, critical = 0;
+        
+        db.forEach(r => {
+            if (r.kml < r.meta.min && r.comb > 0) critical++;
+            else if (r.kml < r.meta.min + 0.5 && r.comb > 0) attention++;
+            else normal++;
+        });
+
+        let total = normal + attention + critical;
+        if(total === 0) return;
+
+        document.getElementById('dashNormalNum').innerText = normal;
+        document.getElementById('dashAttNum').innerText = attention;
+        document.getElementById('dashCritNum').innerText = critical;
+
+        let pctNormal = (normal / total) * 100;
+        let pctAtt = (attention / total) * 100;
+        let pctCrit = (critical / total) * 100;
+
+        let bNormal = document.getElementById('barNormal');
+        let bAtt = document.getElementById('barAttention');
+        let bCrit = document.getElementById('barCritical');
+
+        bNormal.style.width = pctNormal + '%';
+        bNormal.innerText = pctNormal > 5 ? Math.round(pctNormal) + '%' : '';
+
+        bAtt.style.width = pctAtt + '%';
+        bAtt.innerText = pctAtt > 5 ? Math.round(pctAtt) + '%' : '';
+
+        bCrit.style.width = pctCrit + '%';
+        bCrit.innerText = pctCrit > 5 ? Math.round(pctCrit) + '%' : '';
+
+        document.getElementById('dashboardPanel').style.display = 'block';
+    }
+
+    function processarHistoricoSilencioso() {
+        if (!db.length) return;
+        let datas = db.map(r => r.data);
+        let dataRelatorio = datas.sort((a,b) => datas.filter(v => v===a).length - datas.filter(v => v===b).length).pop();
+        let totalLitros = db.reduce((acc, curr) => acc + curr.comb, 0);
+        let totalKm = db.reduce((acc, curr) => acc + curr.km, 0);
+        let mediaGeral = totalLitros > 0 ? (totalKm / totalLitros) : 0;
+        let historico = JSON.parse(localStorage.getItem('rcr_historico_fechamento')) || {};
+        let diasRegistrados = Object.keys(historico).sort((a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')));
+        let textoEvolucao = "Sem dados anteriores para comparação.";
+        let corEvolucao = "#64748b";
+
+        if (diasRegistrados.length > 0 && !historico[dataRelatorio]) {
+            let ultimoDia = diasRegistrados[diasRegistrados.length - 1];
+            let mediaAnterior = historico[ultimoDia].media;
+            let diff = ((mediaGeral - mediaAnterior) / mediaAnterior) * 100;
+
+            if (diff > 0) {
+                textoEvolucao = `📈 Melhoria de +${diff.toFixed(1)}% em relação ao dia ${ultimoDia}`;
+                corEvolucao = "var(--success)";
+            } else if (diff < 0) {
+                textoEvolucao = `📉 Queda de ${diff.toFixed(1)}% em relação ao dia ${ultimoDia}`;
+                corEvolucao = "var(--danger)";
+            } else {
+                textoEvolucao = `➖ Manteve a mesma média do dia ${ultimoDia}`;
+            }
+        } else if (historico[dataRelatorio]) {
+            textoEvolucao = "Fechamento diário já consolidado em cache.";
+        }
+
+        historico[dataRelatorio] = { litros: totalLitros, media: mediaGeral };
+        localStorage.setItem('rcr_historico_fechamento', JSON.stringify(historico));
+
+        document.getElementById('histData').innerText = dataRelatorio;
+        document.getElementById('histMedia').innerText = `${mediaGeral.toFixed(2)} Km/L (Total: ${totalLitros.toLocaleString('pt-PT')} L)`;
+        let evElement = document.getElementById('histEvolucao');
+        evElement.innerText = textoEvolucao;
+        evElement.style.color = corEvolucao;
+        document.getElementById('historyPanel').style.display = 'flex';
+    }
+
+    function renderTable() {
+        const body = document.getElementById('tBody');
+        body.innerHTML = "";
+        const order = defaultOrder.map(c => c.key);
+
+        db.forEach((r, i) => {
+            const tr = document.createElement('tr');
+            
+            let statusLinha = "NORMAL";
+            if (r.kml < r.meta.min && r.comb > 0) statusLinha = "CRITICAL";
+            else if (r.kml < r.meta.min + 0.5 && r.comb > 0) statusLinha = "ATTENTION";
+            
+            tr.dataset.status = statusLinha;
+
+            let hodoDiferenca = Math.abs((r.hfin - r.hini) - r.km);
+            let hodoFraudulento = (hodoDiferenca > 2 && r.hfin > 0 && r.hini > 0); 
+            let tanqueTransbordo = (r.comb > r.meta.tqMax * 1.05); 
+
+            order.forEach(key => {
+                const td = document.createElement('td');
+                let val = r[key];
+                
+                if (key === 'kml') {
+                    val = parseFloat(val).toFixed(2);
+                    if (statusLinha === "CRITICAL") td.className = "alert-critical";
+                    else if (statusLinha === "ATTENTION") td.className = "alert-attention";
+                }
+                
+                if (key === 'km' && hodoFraudulento) {
+                    td.className = "alert-hodo";
+                    td.title = `⚠️ Fraude Intradiária: (Hod.Final ${r.hfin} - Hod.Inicial ${r.hini}) = ${r.hfin - r.hini} Km. O sistema diz que andou ${r.km} Km.`;
+                }
+
+                if (key === 'hini' && r.furoGaragem > 0) {
+                    td.className = "alert-furo";
+                    td.title = `🚨 Furo de Garagem! Veículo rodou ${r.furoGaragem} Km sem registo desde o último relatório inserido.`;
+                }
+
+                if (key === 'comb' && tanqueTransbordo) {
+                    td.className = "alert-transbordo";
+                    td.title = `🚨 TRANSBORDO: Abasteceu ${r.comb}L num tanque que suporta no máximo ${r.meta.tqMax}L.`;
+                }
+                
+                td.innerHTML = `<input class="cell-edit" value="${val}" data-key="${key}" oninput="syncData(${i}, '${key}', this)">`;
+                tr.appendChild(td);
+            });
+            body.appendChild(tr);
+        });
+        
+        document.getElementById('tableWrap').style.display = 'block';
+        document.getElementById('btnPanel').style.display = 'flex';
+        
+        if (colunasAjustadas) { colunasAjustadas = false; ajustarColunas(); }
+        
+        atualizarDashboard(); // Recalcula o gráfico
+        filtrarTabela(); 
+    }
+
+    function syncData(index, key, input) {
+        let val = input.value;
+        let r = db[index];
+        
+        if (key === 'km' || key === 'comb' || key === 'kml' || key === 'hini' || key === 'hfin') {
+            db[index][key] = parseFloat(val.replace(',', '.')) || 0;
+            
+            if (key === 'km' || key === 'comb') {
+                r.kml = r.comb > 0 ? Math.round((r.km / r.comb) * 100) / 100 : 0;
+                const tr = input.closest('tr');
+                const kmlInput = tr.querySelector(`td:nth-child(${defaultOrder.findIndex(c => c.key === 'kml') + 1}) input`);
+                if(kmlInput) kmlInput.value = r.kml.toFixed(2);
+            }
+            renderTable(); 
+        } else {
+            db[index][key] = val;
+            filtrarTabela();
+        }
+    }
+
+    function filtrarTabela() {
+        const termo = document.getElementById('filtroTexto').value.toUpperCase();
+        const statusFiltro = document.getElementById('filtroKm').value;
+        const linhas = document.querySelectorAll('#tBody tr');
+        let contador = 0;
+        
+        linhas.forEach(tr => {
+            const inputs = Array.from(tr.querySelectorAll('input')).map(input => input.value.toUpperCase()).join(" ");
+            const matchTexto = termo === "" || inputs.includes(termo);
+            const matchStatus = statusFiltro === "ALL" || tr.dataset.status === statusFiltro;
+            if (matchTexto && matchStatus) {
+                tr.style.display = "";
+                contador++;
+            } else {
+                tr.style.display = "none";
+            }
+        });
+        document.getElementById('contadorLinhas').innerText = contador;
+    }
+
+    function limparFiltros() {
+        document.getElementById('filtroTexto').value = "";
+        document.getElementById('filtroKm').value = "ALL";
+        filtrarTabela();
+    }
+
+    function exportarExcel() {
+        const labels = defaultOrder.map(col => col.label);
+        const data = Array.from(document.querySelectorAll('#tBody tr')).filter(tr => tr.style.display !== 'none').map(tr => {
+            let obj = {};
+            Array.from(tr.querySelectorAll('input')).forEach((inp, idx) => { obj[labels[idx]] = inp.value; });
+            return obj;
+        });
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Auditoria Filtrada");
+        XLSX.writeFile(wb, "RCR_Auditoria_v50.xlsx");
+    }
+
+    function ajustarColunas() {
+        const table = document.getElementById('mainTable');
+        const ths = table.querySelectorAll('th');
+        const trs = table.querySelectorAll('tbody tr');
+        const btn = document.getElementById('btnAjuste');
+
+        if (!colunasAjustadas) {
+            table.style.tableLayout = 'auto';
+            table.style.minWidth = 'max-content';
+
+            ths.forEach((th, index) => {
+                let maxLen = th.querySelector('input').value.length;
+                trs.forEach(tr => {
+                    if (tr.style.display !== 'none') {
+                        const cellInput = tr.querySelectorAll('td')[index].querySelector('input');
+                        if (cellInput && cellInput.value.length > maxLen) {
+                            maxLen = cellInput.value.length;
+                        }
+                    }
+                });
+                const newWidth = Math.max(maxLen * 8 + 20, 45); 
+                th.style.width = newWidth + 'px';
+                th.style.minWidth = newWidth + 'px';
+            });
+            document.querySelectorAll('.cell-edit, .head-edit').forEach(inp => { inp.style.width = '100%'; });
+            
+            btn.innerText = "↔️ Restaurar Largura Padrão";
+            btn.style.background = "#636e72";
+            colunasAjustadas = true;
+        } else {
+            table.style.tableLayout = 'fixed';
+            table.style.minWidth = '1800px';
+            ths.forEach(th => { th.style.width = ''; th.style.minWidth = ''; });
+            document.querySelectorAll('.cell-edit').forEach(inp => { inp.style.width = '90%'; });
+            document.querySelectorAll('.head-edit').forEach(inp => { inp.style.width = '85%'; });
+            btn.innerText = "↔️ Ajustar Colunas";
+            btn.style.background = "#0984e3";
+            colunasAjustadas = false;
+        }
+    }
+</script>
+</body>
+</html>

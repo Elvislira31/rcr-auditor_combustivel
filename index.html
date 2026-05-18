@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Plataforma de Auditoria Unificada (Globus + Segsat) v75</title>
+    <title>Plataforma de Auditoria Integrada (Globus + Segsat) v77</title>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -38,9 +38,9 @@
         .btn-tool { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.2s; }
         .btn-tool:hover { background: var(--border); }
 
-        .dropzone { border: 2px dashed var(--blue); border-radius: 8px; background: rgba(20,123,106,0.03); padding: 25px 15px; text-align: center; cursor: pointer; margin-bottom: 15px; transition: 0.2s;}
+        .dropzone { border: 2px dashed var(--blue); border-radius: 8px; background: rgba(20,123,106,0.03); padding: 20px 15px; text-align: center; cursor: pointer; margin-bottom: 15px; transition: 0.2s;}
         .dropzone:hover, .dropzone.dragover { background: rgba(20,123,106,0.1); border-color: #0e5e52; }
-        .dropzone-title { font-size: 13px; font-weight: bold; color: var(--blue); display: block; margin-bottom: 5px; pointer-events: none; }
+        .dropzone-title { font-size: 12px; font-weight: bold; color: var(--blue); display: block; margin-bottom: 5px; pointer-events: none; }
         .dropzone-desc { font-size: 10px; color: var(--text); opacity: 0.8; pointer-events: none; }
 
         .btn-main { background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; padding: 15px; width: 100%; transition: 0.3s; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(20,123,106,0.2); }
@@ -54,7 +54,7 @@
         .stat-item { padding: 12px; border-radius: 8px; text-align: left; font-weight: bold; cursor: pointer; border: 1px solid var(--border); background: var(--card-bg); transition: 0.2s; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
         .stat-item.active-stat { border-color: var(--blue); transform: translateX(5px); box-shadow: -2px 2px 10px rgba(0,0,0,0.05); }
 
-        .ranking-area { margin-top: 5px; }
+        .ranking-area { margin-top: 5px; margin-bottom: 15px; border-top: 1px dashed var(--border); padding-top: 15px; }
         .ranking-title { font-size: 12px; color: var(--red); margin: 0 0 10px 0; text-transform: uppercase; display: flex; align-items: center; gap: 5px;}
         .ranking-item { background: rgba(217,48,37,0.08); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 11px; border-left: 3px solid var(--red); display: flex; flex-direction: column; cursor: pointer; transition: 0.2s;}
         .ranking-item:hover { background: rgba(217,48,37,0.15); transform: translateX(5px); box-shadow: -2px 2px 5px rgba(0,0,0,0.05); }
@@ -103,15 +103,13 @@
         body.dark-mode .driver-info { color: #aaa; }
         .bold-val { font-weight: 700; font-size: 12px;}
 
-        /* BARRA DE RISCO FORENSE */
         .risk-container { width: 100%; background: #ddd; border-radius: 4px; overflow: hidden; height: 12px; margin-top: 5px; position: relative; }
         body.dark-mode .risk-container { background: #444; }
         .risk-bar { height: 100%; transition: width 0.5s ease-in-out; }
         .risk-text { position: absolute; width: 100%; text-align: center; font-size: 9px; line-height: 12px; color: #000; font-weight: 800; top: 0; left: 0; text-shadow: 0px 0px 2px rgba(255,255,255,0.8); }
 
-        /* MODAIS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 12px; width: 420px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 12px; width: 420px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;}
         body.dark-mode .modal-overlay { background: rgba(0,0,0,0.8); }
         .modal-content h3 { margin-top: 0; color: var(--blue); font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;}
         .modal-input { width: 100%; padding: 8px 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; background: var(--bg); color: var(--text); outline: none; font-family: inherit; font-size: 12px;}
@@ -125,7 +123,7 @@
 
 <aside class="sidebar">
     <div class="brand">
-        <h2>Auditoria Integrada<br><span style="font-size: 10px; opacity:0.6;">Globus + Segsat v75.0</span></h2>
+        <h2>Auditoria Integrada<br><span style="font-size: 10px; opacity:0.6;">Globus + Segsat v77.0</span></h2>
     </div>
 
     <div class="tools-row">
@@ -134,14 +132,14 @@
     </div>
 
     <div class="dropzone" id="dz-report" onclick="document.getElementById('reportIn').click()">
-        <span class="dropzone-title">📁 Importação Múltipla</span>
-        <span class="dropzone-desc" id="dz-report-text">Selecione arquivos Segsat (Excel) E Globus (HTML) simultaneamente para o cruzamento de dados.</span>
+        <span class="dropzone-title">📁 Importação Unificada</span>
+        <span class="dropzone-desc" id="dz-report-text">Selecione arquivos Segsat (Excel) E Globus (HTML) simultaneamente para o cruzamento.</span>
     </div>
 
     <button class="btn-main" onclick="processarArquivos()">🔍 CRUZAR INFORMAÇÕES</button>
 
     <div id="fleetHealthBanner" class="fleet-health" style="display:none;">
-        <p class="health-sub">Volume de Desvios Detectados</p>
+        <p class="health-sub">Litragem Crítica Detectada</p>
         <p id="totalDrainText" class="health-percent">0 L</p>
     </div>
 
@@ -154,9 +152,14 @@
         </div>
     </div>
 
-    <div class="ranking-area" id="rankingArea" style="display:none;">
-        <h4 class="ranking-title">⚠️ Top Veículos com Inconsistências</h4>
+    <div class="ranking-area" id="rankingAreaVeiculos" style="display:none;">
+        <h4 class="ranking-title">🚛 Top Veículos</h4>
         <div id="topInfratoresList"></div>
+    </div>
+    
+    <div class="ranking-area" id="rankingAreaMotoristas" style="display:none; padding-top: 0; border-top: none;">
+        <h4 class="ranking-title" style="color: var(--orange);">👤 Top Motoristas (Recorrência)</h4>
+        <div id="topMotoristasList"></div>
     </div>
 </aside>
 
@@ -165,8 +168,8 @@
     <div class="control-panel" id="controlPanel" style="display: none;">
         <div class="tab-filters">
             <button class="tab-btn active" id="tab_ALL" onclick="setTab('ALL')">TUDO</button>
-            <button class="tab-btn" id="tab_DRENO" onclick="setTab('DRENO')">SÓ PERDAS / DRENOS</button>
-            <button class="tab-btn" id="tab_GLOBUS" onclick="setTab('GLOBUS')">SÓ ALARMES GLOBUS</button>
+            <button class="tab-btn" id="tab_DRENO" onclick="setTab('DRENO')">SÓ DRENOS FÍSICOS</button>
+            <button class="tab-btn" id="tab_GLOBUS" onclick="setTab('GLOBUS')">SÓ ALARMES GLOBUS / RENDIMENTO</button>
         </div>
         
         <div class="search-filters">
@@ -186,12 +189,12 @@
             <table class="dados active" id="tabE">
                 <thead>
                     <tr>
-                        <th style="width: 10%;">Veículo</th>
+                        <th style="width: 10%;">Veículo / Motorista</th>
                         <th style="width: 12%;">Início / Fim</th>
-                        <th style="width: 12%;">Risco Forense</th>
-                        <th style="width: 15%;">Volume Segsat</th>
-                        <th style="width: 18%;">Rendimento Globus</th>
-                        <th style="width: 20%;">Localização GPS</th>
+                        <th style="width: 10%;">Risco Forense</th>
+                        <th style="width: 18%;">Análise de Volume</th>
+                        <th style="width: 15%;">Desempenho (Globus/Segsat)</th>
+                        <th style="width: 15%;">Localização GPS</th>
                         <th class="col-acao">Ações Analíticas</th>
                     </tr>
                 </thead>
@@ -206,7 +209,7 @@
                         <th>Identificação</th>
                         <th>Período</th>
                         <th>Volume</th>
-                        <th>Rendimento</th>
+                        <th>Rendimento (Km/L)</th>
                         <th>Parecer da Auditoria</th>
                     </tr>
                 </thead>
@@ -250,13 +253,15 @@
         <select id="modalClassificacao" class="modal-input" required style="font-weight:bold;">
             <option value="">-- Selecione o Resultado da Análise --</option>
             <option value="Desvio Consolidado">🚨 Desvio Consolidado (Drenagem Indevida)</option>
+            <option value="Inconsistência de Capacidade">⚠️ Inconsistência de Capacidade (Abast. Externo)</option>
             <option value="Falso Positivo">♻️ Falso Positivo (Erro de Boia / Balanço)</option>
             <option value="Manutenção Autorizada">🛡️ Manutenção / Uso Autorizado na Oficina</option>
             <option value="Abastecimento Confirmado">⛽ Abastecimento Válido</option>
+            <option value="Justificado por Trânsito">🚗 Rendimento Baixo Justificado (Trânsito Pesado)</option>
             <option value="Outro (Ver Descrição)">Outra Situação (Descrever abaixo)</option>
         </select>
         <label class="label-modal">Observações / Descrição (Opcional):</label>
-        <textarea id="modalDescricao" class="modal-input" placeholder="Adicione detalhes..." style="resize:vertical; min-height:50px;"></textarea>
+        <textarea id="modalDescricao" class="modal-input" placeholder="Adicione detalhes adicionais..." style="resize:vertical; min-height:50px;"></textarea>
         <label class="modal-check" style="margin-top:5px; border-top: 1px dashed var(--border); padding-top:15px;">
             <input type="checkbox" id="modalCctvOk"> 
             Imagens do Copiloto Resgatadas?
@@ -278,7 +283,6 @@ let activeTabFilter = 'ALL';
 let eventoSendoValidado = null; 
 
 const ZONAS_SEGURAS = ['GARAGEM', 'OFICINA', 'BASE', 'SEDE', 'CONCESSIONARIA', 'MANUTENCAO'];
-const ZONAS_PERIGO = ['BR-', 'RODOVIA', 'POSTO', 'PARADA', 'ACOSTAMENTO', 'BA-', 'PE-', 'MA-'];
 const ALIAS_INICIO = ['início', 'inicio', 'inicio do dreno', 'hora', 'hora do abastecimento ou carga', 'data', 'data inicio'];
 const ALIAS_FIM = ['fim', 'final', 'fim do dreno', 'final do dreno', 'termino', 'data fim'];
 
@@ -322,12 +326,13 @@ function parseSegsatDate(dateStr) {
     return new Date(0);
 }
 
-// METAS GLOBUS
+// CAPACIDADE E META (GLOBUS/SEGSAT)
 const getMetaGlobus = (pref) => {
     let p = parseInt(pref);
-    if (p >= 1000 && p <= 1999) return { cat: "VAN", min: 7.0 }; 
-    if (p >= 2000 && p <= 4999) return { cat: "MICRO", min: 3.5 };
-    return { cat: "ONIBUS", min: 2.1 }; 
+    if (isNaN(p)) return { cat: "OUTROS", min: 2.0, tqMax: 400 }; 
+    if (p >= 1000 && p <= 1999) return { cat: "VAN", min: 7.0, tqMax: 90 }; 
+    if (p >= 2000 && p <= 4999) return { cat: "MICRO", min: 3.5, tqMax: 150 };
+    return { cat: "ONIBUS", min: 2.1, tqMax: 300 }; 
 };
 
 // HELPERS UI
@@ -376,7 +381,7 @@ function confirmarValidacao() {
         evento.CctvResgatado = document.getElementById('modalCctvOk').checked;
         evento.CctvLink = document.getElementById('modalCctvLink').value.trim();
 
-        if (evento.Tipo === "DRENO" && !evento.Rebote && !evento.ZonaSegura) {
+        if ((evento.Tipo === "DRENO" || evento.Tipo === "ANOMALIA DE CONSUMO") && !evento.Rebote && !evento.ZonaSegura) {
             let currentTotal = parseFloat(document.getElementById('totalDrainText').innerText.replace(' L', ''));
             let newTotal = currentTotal - evento.Volume;
             document.getElementById('totalDrainText').innerText = `${newTotal > 0 ? newTotal.toFixed(1) : 0} L`;
@@ -397,6 +402,22 @@ function extractLiters(val) {
     return parseFloat(str) || 0;
 }
 
+function parseHorasDecimais(hhmmss) {
+    if(!hhmmss || !hhmmss.includes(':')) return 0;
+    let p = hhmmss.split(':');
+    return parseInt(p[0]) + (parseInt(p[1])/60) + (p[2] ? parseInt(p[2])/3600 : 0);
+}
+
+function getHeaderValue(row, aliasesArray) {
+    for (let alias of aliasesArray) {
+        let cleanAlias = alias.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+        for (let key in row) {
+            if (key.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase() === cleanAlias) return row[key];
+        }
+    }
+    return undefined;
+}
+
 const readFileAsync = (file) => {
     return new Promise((resolve, reject) => {
         let reader = new FileReader();
@@ -407,17 +428,61 @@ const readFileAsync = (file) => {
     });
 };
 
-// CORE: CRUZAMENTO DE DADOS
+function filtrarPorSuspeito(filtro) {
+    document.getElementById('fGlobal').value = filtro;
+    setTab('ALL'); 
+    document.getElementById('tableContainer').scrollIntoView({behavior: 'smooth'});
+}
+
+function gerarDossie(frota, dataIniStr, tipo) {
+    const ev = baseEventos.find(v => v.Frota === frota && v.DataIniStr === dataIniStr && v.Tipo === tipo);
+    if(!ev) return;
+    let win = window.open('', '_blank');
+    let tagsHtml = "";
+    if (ev.ExcessoCapacidade) tagsHtml += "<div style='color:orange; font-weight:bold; margin-bottom:5px;'>[!] ALERTA: ABASTECIMENTO EXCEDE CAPACIDADE FÍSICA DO TANQUE</div>";
+    if (ev.GlobusData && ev.GlobusData.isCritical && ev.Tipo === "DRENO") tagsHtml += "<div style='color:darkred; font-weight:bold; margin-bottom:5px;'>[!] ALERTA CRUZADO: Dreno Físico Confirmado pelo Globus (Abaixo da Meta)</div>";
+    if (ev.FraudeRetorno) tagsHtml += "<div style='color:red; font-weight:bold; margin-bottom:5px;'>[!] ALTO CONSUMO EM MARCHA LENTA: Fraude de Retorno de Bico</div>";
+    
+    win.document.write(`
+        <html><head><title>Relatório Forense - ${ev.Frota}</title>
+        <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #333; max-width: 800px; margin: auto; }
+            .header { text-align: center; border-bottom: 2px solid #d93025; padding-bottom: 20px; margin-bottom: 30px; }
+            .title { color: #d93025; font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+            .content-box { border: 1px solid #ccc; padding: 25px; border-radius: 8px; margin-bottom: 20px; background: #fafafa;}
+            .row { margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 8px; }
+            .label { font-weight: bold; color: #555; display: inline-block; width: 220px; }
+            .val { font-size: 15px; font-weight: 600; color: #000; }
+            .sig-line { border-top: 1px solid #000; width: 40%; text-align: center; padding-top: 5px; font-size: 12px; font-weight: bold; margin-top: 80px;}
+        </style>
+        </head><body>
+            <div class="header"><div class="title">RELATÓRIO DE INCONSISTÊNCIA</div></div>
+            ${tagsHtml}
+            <div class="content-box">
+                <div class="row"><span class="label">Placa / Motorista:</span> <span class="val">${ev.Frota} | ${ev.Motorista}</span></div>
+                <div class="row"><span class="label">Período da Ocorrência:</span> <span class="val">${ev.DataIniStr} - ${ev.DataFimStr}</span></div>
+                <div class="row"><span class="label">Natureza:</span> <span class="val">${ev.Tipo}</span></div>
+                <div class="row"><span class="label">Volume Questionado:</span> <span class="val" style="color:red;">${ev.Volume.toFixed(1)} L</span></div>
+                <div class="row"><span class="label">Análise de Rendimento:</span> <span class="val">${ev.GlobusData ? ev.GlobusData.kml.toFixed(2)+' Km/L (Globus)' : (ev.RendReal ? ev.RendReal+' Km/L (Segsat)' : 'N/A')}</span></div>
+                <div class="row"><span class="label">Localização (GPS):</span> <span class="val">${ev.Endereco}</span></div>
+            </div>
+            <p style="font-size:11px; color:#777;">* Documento gerado automaticamente pelo Sistema de Auditoria Analítica, extraindo de forma imutável os dados da rede CAN, Segsat e Globus.</p>
+            <div style="display: flex; justify-content: space-between;"><div class="sig-line">Auditor</div><div class="sig-line">Motorista</div></div>
+            <script> window.onload = function() { window.print(); } <\/script>
+        </body></html>
+    `);
+    win.document.close();
+}
+
+// CORE: CRUZAMENTO DE DADOS (GLOBUS + SEGSAT + HORAS MOTOR)
 async function processarArquivos() {
     if (!fileInput.files || fileInput.files.length === 0) return alert("Selecione os arquivos HTML (Globus) e/ou Excel (Segsat).");
     
     baseEventos = []; dbGlobus = {}; hashDeEventos = new Set();
-    document.getElementById('btnPanel') ? document.getElementById('btnPanel').style.display='none' : null;
-
     let files = Array.from(fileInput.files);
     let parsedFiles = await Promise.all(files.map(f => readFileAsync(f)));
 
-    // PASSO 1: LER GLOBUS (Para criar a base de Inteligência Financeira de Km/L)
+    // PASSO 1: LER GLOBUS (Inteligência Financeira)
     parsedFiles.filter(f => f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')).forEach(f => {
         let parser = new DOMParser();
         let doc = parser.parseFromString(f.data, "text/html");
@@ -473,30 +538,37 @@ async function processarArquivos() {
         });
     });
 
-    // Calcula as médias finais do Globus
     for(let p in dbGlobus) {
         dbGlobus[p].kml = dbGlobus[p].comb > 0 ? (dbGlobus[p].km / dbGlobus[p].comb) : 0;
         dbGlobus[p].isCritical = dbGlobus[p].kml > 0 && dbGlobus[p].kml < dbGlobus[p].metaInfo.min;
     }
 
-    // PASSO 2: LER SEGSAT E CRUZAR COM GLOBUS
+    // PASSO 2: LER SEGSAT (Multi-Aba) E CRUZAR INFORMAÇÕES
     parsedFiles.filter(f => f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.csv')).forEach(f => {
         const workbook = XLSX.read(new Uint8Array(f.data), {type: 'array'});
         workbook.SheetNames.forEach(sheetName => {
             const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {raw: false, defval: ""});
+
             json.forEach(row => {
                 let frotaRaw = row['Agrupamento'] || row['Veículo'] || row['Frota'] || "";
                 let frota = frotaRaw.toString().trim().toUpperCase().replace(/[*]/g, "").replace(/^0+/, "");
+                let motorista = (row['Motorista'] || "NÃO IDENTIFICADO").toString().trim().toUpperCase();
                 
-                let dataInicio = row['Início'] || row['Hora'] || row['Hora do abastecimento ou carga'] || "";
-                let dataFim = row['Fim'] || row['Hora'] || dataInicio;
+                let dataInicio = getHeaderValue(row, ALIAS_INICIO) || "";
+                let dataFim = getHeaderValue(row, ALIAS_FIM) || dataInicio;
                 
                 let isDreno = row['Drenado'] !== undefined && row['Drenado'] !== "" && !String(row['Drenado']).includes("-----");
                 let isAbast = row['Abastecido'] !== undefined && row['Abastecido'] !== "" && !String(row['Abastecido']).includes("-----");
-                
+                let isConsumo = row['REND. REALIZADO'] !== undefined || row['Variação'] !== undefined;
+
                 let tipoEvento = ""; let volumeFinal = 0;
                 let nivelIni = extractLiters(row['Nível de combustível inicial']);
                 let nivelFim = extractLiters(row['Nível de combustível final']);
+                let quilometragem = extractLiters(row['Quilometragem']);
+                let horasMotorStr = row['Horas de motor'] || "0:00:00";
+                let horasDecimais = parseHorasDecimais(horasMotorStr);
+
+                let vVariacao = 0, vRendReal = 0, vRendMeta = 0;
 
                 if (isDreno) {
                     tipoEvento = "DRENO";
@@ -504,29 +576,48 @@ async function processarArquivos() {
                 } else if (isAbast) {
                     tipoEvento = "ABASTECIMENTO";
                     volumeFinal = Math.abs(nivelFim - nivelIni) > 0 ? Math.abs(nivelFim - nivelIni) : extractLiters(row['Abastecido']);
+                } else if (isConsumo) {
+                    let varStr = String(row['Variação'] || "").replace(',', '.');
+                    let varNum = parseFloat(varStr.replace(/[^0-9.]/g, '')) || 0;
+                    if(varStr.includes('-')) varNum = -varNum;
+                    
+                    let consumido = extractLiters(row['Consumido (Litros)']);
+                    
+                    if (varNum <= -20 && consumido > 5) {
+                        tipoEvento = "ANOMALIA DE CONSUMO";
+                        volumeFinal = consumido;
+                        vVariacao = varNum;
+                        vRendReal = parseFloat(String(row['REND. REALIZADO'] || "").replace(',', '.').replace(/[^0-9.]/g,"")) || 0;
+                        vRendMeta = parseFloat(String(row['REND. META'] || "").replace(',', '.').replace(/[^0-9.]/g,"")) || 0;
+                    }
                 }
 
-                // REGRA 500L
                 if (frota && volumeFinal > 0 && volumeFinal <= 500 && tipoEvento !== "") {
-                    let endereco = row['Posição inicial'] || row['Localização'] || row['Endereço'] || row['Posição final'] || "GPS Desconhecido";
+                    let endereco = row['Posição inicial'] || row['Localização'] || row['Endereço'] || "Endereço Desconhecido";
                     let repouso = extractLiters(row['Velocidade inicial']) === 0 && extractLiters(row['Velocidade final']) === 0;
+
+                    let metaVeiculo = getMetaGlobus(frota);
+                    let flgExcesso = false;
+                    if (tipoEvento === "ABASTECIMENTO") {
+                        if ((nivelIni + volumeFinal) > (metaVeiculo.tqMax * 1.15)) flgExcesso = true;
+                    }
 
                     let chaveUnica = `${frota}-${dataInicio}-${tipoEvento}-${volumeFinal}`;
                     if (!hashDeEventos.has(chaveUnica)) {
                         hashDeEventos.add(chaveUnica);
-                        
                         let globusMatch = dbGlobus[frota] || null;
 
                         baseEventos.push({
-                            Frota: frota,
-                            Motorista: (row['Motorista'] || "N/A").toString().trim().toUpperCase(),
-                            DataIniStr: dataInicio, DataFimStr: dataFim,
-                            DataRaw: parseSegsatDate(dataInicio),
+                            Frota: frota, Motorista: motorista,
+                            DataIniStr: dataInicio, DataFimStr: dataFim, DataRaw: parseSegsatDate(dataInicio),
                             Volume: volumeFinal, NivelInicial: nivelIni, NivelFinal: nivelFim,
+                            KMRealizado: quilometragem, HorasMotor: horasDecimais,
                             Endereco: endereco, Tipo: tipoEvento, Repouso: repouso,
-                            Rebote: false, ZonaSegura: false, ZonaPerigo: false, GotaAGota: false,
-                            GlobusData: globusMatch, // Ouro Forense
+                            GlobusData: globusMatch, ExcessoCapacidade: flgExcesso,
+                            Rebote: false, ZonaSegura: false,
+                            JustificadoTransito: false, FraudeRetorno: false,
                             Score: 0, CctvResgatado: false, CctvLink: "", Classificacao: "", Observacao: "",
+                            Variacao: vVariacao, RendReal: vRendReal, RendMeta: vRendMeta,
                             RawData: row
                         });
                     }
@@ -535,17 +626,16 @@ async function processarArquivos() {
         });
     });
 
-    // PASSO 3: EVENTOS VIRTUAIS DO GLOBUS (Veículos que fraudaram via KM/L sem dreno físico no Segsat)
+    // EVENTOS VIRTUAIS GLOBUS (Falta de Dreno Físico)
     for (let p in dbGlobus) {
         if (dbGlobus[p].isCritical) {
-            let temNoSegsat = baseEventos.some(e => e.Frota === p);
-            if (!temNoSegsat) {
+            if (!baseEventos.some(e => e.Frota === p)) {
                 baseEventos.push({
                     Frota: p, Motorista: "Análise Globus",
                     DataIniStr: "Fechamento Globus", DataFimStr: "Fechamento Globus",
-                    DataRaw: new Date(), Volume: 0, NivelInicial: 0, NivelFinal: 0,
+                    DataRaw: new Date(), Volume: 0, NivelInicial: 0, NivelFinal: 0, KMRealizado: 0, HorasMotor: 0,
                     Endereco: "Análise de Rota Sistêmica", Tipo: "ALERTA GLOBUS", Repouso: false,
-                    GlobusData: dbGlobus[p], Score: 80, // Risco alto direto
+                    GlobusData: dbGlobus[p], Score: 80, ExcessoCapacidade: false,
                     CctvResgatado: false, CctvLink: "", Classificacao: "", Observacao: ""
                 });
             }
@@ -556,25 +646,38 @@ async function processarArquivos() {
 }
 
 function aplicarHeuristicaInvestigativa() {
-    if(baseEventos.length === 0) return alert("Nenhuma movimentação ou anomalia encontrada nos relatórios.");
-
+    if(baseEventos.length === 0) return alert("Nenhuma movimentação encontrada.");
     baseEventos.sort((a, b) => a.Frota.localeCompare(b.Frota) || a.DataRaw.getTime() - b.DataRaw.getTime());
 
     let totalRiscoCritico = 0;
 
     for (let i = 0; i < baseEventos.length; i++) {
         let ev = baseEventos[i];
-        let endUpper = ev.Endereco.toUpperCase();
+        
+        if (ZONAS_SEGURAS.some(z => ev.Endereco.toUpperCase().includes(z))) ev.ZonaSegura = true;
 
-        if (ZONAS_SEGURAS.some(z => endUpper.includes(z))) ev.ZonaSegura = true;
+        // IDEIAS NOVAS: ESFORÇO OPERACIONAL E MARCHA LENTA
+        if (ev.Tipo === "ANOMALIA DE CONSUMO" || (ev.Tipo === "DRENO" && ev.HorasMotor > 0)) {
+            let velMedia = ev.HorasMotor > 0 ? ev.KMRealizado / ev.HorasMotor : 0;
+            
+            // Justificativa de Trânsito: Andou, mas a velocidade média foi inferior a 15 km/h
+            if (velMedia > 0 && velMedia < 15 && ev.KMRealizado > 5) {
+                ev.JustificadoTransito = true;
+            } 
+            // Fraude em Marcha Lenta: Motor ligado por mais de 1 hora, mas andou menos de 5 km (Parado no bico)
+            else if (ev.KMRealizado < 5 && ev.HorasMotor >= 1.0 && ev.Volume >= 10) {
+                ev.FraudeRetorno = true;
+            }
+        }
 
+        // ELIMINAR REBOTES DE BOIA
         if (ev.Tipo === "DRENO") {
             for (let j = i + 1; j < Math.min(i + 15, baseEventos.length); j++) {
                 let prox = baseEventos[j];
                 if (prox.Frota !== ev.Frota) break; 
                 if (prox.Tipo === "ABASTECIMENTO") {
-                    let diffMinutos = (prox.DataRaw.getTime() - ev.DataRaw.getTime()) / 60000;
-                    if (diffMinutos >= 0 && diffMinutos <= 120) {
+                    let diffMin = (prox.DataRaw.getTime() - ev.DataRaw.getTime()) / 60000;
+                    if (diffMin >= 0 && diffMin <= 120) {
                         let diffVol = Math.abs(prox.Volume - ev.Volume);
                         if (diffVol <= 5 || diffVol / ev.Volume < 0.25) {
                             ev.Rebote = true; prox.Rebote = true; break;
@@ -582,24 +685,28 @@ function aplicarHeuristicaInvestigativa() {
                     }
                 }
             }
-            if (!ev.Rebote && !ev.ZonaSegura) totalRiscoCritico += ev.Volume;
+            if (!ev.Rebote && !ev.ZonaSegura && !ev.JustificadoTransito) totalRiscoCritico += ev.Volume;
         }
 
-        // SCORING
+        // CÁLCULO DE SCORE
         let s = 0;
-        if (ev.Tipo === "DRENO") {
-            s = 30;
-            if (ev.Repouso) s += 20;
-            if (ev.GlobusData && ev.GlobusData.isCritical) s += 50; // ALERTA CRUZADO FATAL
-        } else if (ev.Tipo === "ALERTA GLOBUS") {
-            s = 80;
-        }
-        ev.Score = s > 100 ? 100 : (ev.Rebote || ev.ZonaSegura ? 0 : s);
+        if (ev.Tipo === "DRENO") s = 30;
+        if (ev.Tipo === "ANOMALIA DE CONSUMO") s = 40;
+        if (ev.Tipo === "ALERTA GLOBUS") s = 80;
+        if (ev.Tipo === "ABASTECIMENTO" && ev.ExcessoCapacidade) s = 50;
+
+        if (ev.Repouso) s += 20;
+        if (ev.GlobusData && ev.GlobusData.isCritical && ev.Tipo === "DRENO") s += 40; // O ALERTA CRUZADO SUPREMO
+        if (ev.FraudeRetorno) s += 40;
+        if (ev.JustificadoTransito) s -= 40; // Penalidade invertida (é falso positivo de trânsito)
+        
+        ev.Score = s > 100 ? 100 : (ev.Rebote || ev.ZonaSegura ? 0 : Math.max(0, s));
     }
 
     atualizarTopInfratores(baseEventos);
     document.getElementById('fleetHealthBanner').style.display = 'block';
-    document.getElementById('rankingArea').style.display = 'block';
+    document.getElementById('rankingAreaVeiculos').style.display = 'block';
+    document.getElementById('rankingAreaMotoristas').style.display = 'block';
     document.getElementById('controlPanel').style.display = 'flex';
     document.getElementById('totalDrainText').innerText = `${totalRiscoCritico.toFixed(1)} Litros`;
     document.getElementById('statsArea').style.display = 'flex';
@@ -608,22 +715,33 @@ function aplicarHeuristicaInvestigativa() {
 }
 
 function atualizarTopInfratores(eventosLimpos) {
-    let contagem = {};
+    let contagemFrota = {}; let contagemMotorista = {};
     eventosLimpos.forEach(v => {
-        if ((v.Tipo === "DRENO" || v.Tipo === "ALERTA GLOBUS") && !v.Rebote && !v.ZonaSegura) {
-            if(!contagem[v.Frota]) contagem[v.Frota] = { total: 0, motorista: v.Motorista };
-            contagem[v.Frota].total++;
+        if (((v.Tipo === "DRENO" || v.Tipo === "ANOMALIA DE CONSUMO" || v.Tipo === "ALERTA GLOBUS") && !v.Rebote && !v.ZonaSegura && !v.JustificadoTransito) || v.ExcessoCapacidade) {
+            if(!contagemFrota[v.Frota]) contagemFrota[v.Frota] = { total: 0, motorista: v.Motorista };
+            contagemFrota[v.Frota].total++;
+            let mot = (v.Motorista === "NÃO IDENTIFICADO" || v.Motorista === "-----" || v.Motorista === "") ? "DESCONHECIDO" : v.Motorista;
+            if (mot !== "DESCONHECIDO") {
+                if(!contagemMotorista[mot]) contagemMotorista[mot] = { total: 0, veiculos: new Set() };
+                contagemMotorista[mot].total++; contagemMotorista[mot].veiculos.add(v.Frota);
+            }
         }
     });
 
-    let ranking = Object.keys(contagem).map(k => ({frota: k, motorista: contagem[k].motorista, total: contagem[k].total})).sort((a,b) => b.total - a.total); 
-    let html = ranking.slice(0, 5).map(r => `
-        <div class="ranking-item" onclick="document.getElementById('fGlobal').value='${r.frota}'; setTab('ALL');">
-            <b>Veículo ${r.frota} <span style="color:var(--red)">(${r.total} Alertas)</span></b>
-            <span style="opacity:0.8">👤 ${r.motorista}</span>
-        </div>
-    `).join('');
-    document.getElementById('topInfratoresList').innerHTML = html || "<div style='font-size:11px; padding:10px;'>Sem anomalias.</div>";
+    let htmlFrota = Object.keys(contagemFrota).map(k => ({f: k, m: contagemFrota[k].motorista, t: contagemFrota[k].total}))
+        .sort((a,b) => b.t - a.t).slice(0, 5).map(r => `
+        <div class="ranking-item" onclick="document.getElementById('fGlobal').value='${r.f}'; setTab('ALL');">
+            <b>Veículo ${r.f} <span style="color:var(--red)">(${r.t} Alertas)</span></b><span style="opacity:0.8">👤 ${r.m}</span>
+        </div>`).join('');
+
+    let htmlMotorista = Object.keys(contagemMotorista).map(k => ({m: k, v: Array.from(contagemMotorista[k].veiculos).join(', '), t: contagemMotorista[k].total}))
+        .sort((a,b) => b.t - a.t).slice(0, 5).map(r => `
+        <div class="ranking-item" onclick="document.getElementById('fGlobal').value='${r.m}'; setTab('ALL');">
+            <b>👤 ${r.m.length > 20 ? r.m.substring(0,20)+'...' : r.m} <span style="color:var(--orange)">(${r.t} Alertas)</span></b><span style="opacity:0.8">🚛 Operou: ${r.v}</span>
+        </div>`).join('');
+
+    document.getElementById('topInfratoresList').innerHTML = htmlFrota || "<div style='font-size:11px; padding:10px;'>Sem anomalias de veículos.</div>";
+    document.getElementById('topMotoristasList').innerHTML = htmlMotorista || "<div style='font-size:11px; padding:10px;'>Sem dados comportamentais.</div>";
 }
 
 function aplicarFiltros() {
@@ -635,8 +753,7 @@ function aplicarFiltros() {
                       (activeTabFilter === 'GLOBUS' && (v.Tipo === 'ALERTA GLOBUS' || (v.GlobusData && v.GlobusData.isCritical))) ||
                       v.Tipo === activeTabFilter);
         let passGlobal = v.Frota.includes(vGlobal) || v.Motorista.includes(vGlobal);
-        let passVol = v.Volume >= vVolMin;
-        return passTab && passGlobal && passVol;
+        return passTab && passGlobal && v.Volume >= vVolMin;
     });
 
     eventosExibidos.sort((a, b) => b.Score - a.Score || b.Volume - a.Volume);
@@ -652,31 +769,36 @@ function renderizarTabelas() {
             else if (v.ZonaSegura) { colorVol = "var(--orange)"; tagsHTML += `<span class="badge bg-green">🛡️ MANUTENÇÃO</span>`; } 
             else {
                 css = "heat-red"; colorVol = "var(--red)";
-                if (v.Volume > 20) tagsHTML += `<span class="badge bg-red">🚨 GRANDE VOLUME DRENADO</span>`;
+                if (v.FraudeRetorno) tagsHTML += `<span class="badge bg-darkred">🚨 ALTO CONSUMO PARADO (Fraude Retorno)</span>`;
+                else if (v.Volume > 20) tagsHTML += `<span class="badge bg-red">🚨 GRANDE VOLUME DRENADO</span>`;
                 if (v.Repouso) tagsHTML += `<span class="badge bg-black">⚠️ VEÍCULO ESTACIONADO</span>`;
             }
         } else if (v.Tipo === "ALERTA GLOBUS") {
-            css = "heat-red"; colorVol = "var(--purple)";
-            tagsHTML += `<span class="badge bg-purple">📉 DETECÇÃO EXCLUSIVA GLOBUS</span>`;
+            css = "heat-red"; colorVol = "var(--purple)"; tagsHTML += `<span class="badge bg-purple">📉 DETECÇÃO EXCLUSIVA GLOBUS</span>`;
+        } else if (v.Tipo === "ANOMALIA DE CONSUMO") {
+            css = "heat-red"; colorVol = "var(--orange)";
+            if (v.JustificadoTransito) { css=""; colorVol="var(--green)"; tagsHTML += `<span class="badge bg-green">✅ RENDIMENTO BAIXO JUSTIFICADO (Trânsito)</span>`; }
+            else { tagsHTML += `<span class="badge bg-orange">📉 QUEDA DE RENDIMENTO SEGSAT (-${Math.abs(v.Variacao)}%)</span>`; }
         } else {
             css = v.Rebote ? "linha-rebote" : "linha-abastecimento";
-            tagsHTML = v.Rebote ? `<span class="badge bg-gray">♻️ REBOTE SENSOR</span>` : `<span class="badge bg-teal">⛽ ABASTECIMENTO VÁLIDO</span>`;
+            if (v.ExcessoCapacidade) { css = "heat-red"; tagsHTML += `<span class="badge bg-orange">⚠️ CAPACIDADE EXCEDIDA (Uso de Galão?)</span>`; } 
+            else { tagsHTML = v.Rebote ? `<span class="badge bg-gray">♻️ REBOTE SENSOR</span>` : `<span class="badge bg-teal">⛽ ABASTECIMENTO VÁLIDO</span>`; }
         }
 
-        // BLOCO MÁGICO: Exibe a prova de fogo se o Dreno bater com o Globus Ruim
-        let htmlGlobus = `<span style="color:#aaa; font-size:10px;">Sem dados de fechamento</span>`;
+        let htmlGlobus = `<span style="color:#aaa; font-size:10px;">Sem dados Globus</span>`;
         if(v.GlobusData) {
             let colorG = v.GlobusData.isCritical ? "var(--red)" : "var(--green)";
             let badgeG = v.GlobusData.isCritical ? `<div class="badge bg-red" style="margin-top:2px;">ABAIXO DA META (${v.GlobusData.metaInfo.min})</div>` : `<div class="badge bg-green" style="margin-top:2px;">Dentro da Meta</div>`;
             htmlGlobus = `<b style="color:${colorG}; font-size:13px;">${v.GlobusData.kml.toFixed(2)} Km/L</b><br>${badgeG}`;
             
-            if (v.Tipo === "DRENO" && v.GlobusData.isCritical && !v.Rebote) {
-                tagsHTML += `<div class="badge bg-globus" style="margin-top:4px; display:block;">🚨 ALERTA CRUZADO: Dreno Físico Confirmado pelo Rendimento Financeiro</div>`;
+            if (v.Tipo === "DRENO" && v.GlobusData.isCritical && !v.Rebote && !v.ZonaSegura) {
+                tagsHTML += `<div class="badge bg-globus" style="margin-top:4px; display:block;">🚨 ALERTA CRUZADO: Dreno Físico + Rendimento Baixo (Globus)</div>`;
             }
         }
 
         let calcSignal = v.Tipo === "ABASTECIMENTO" ? "+" : (v.Volume > 0 ? "-" : "");
         let htmlScore = v.Score > 0 ? `<div class="risk-container"><div class="risk-bar" style="width: ${v.Score}%; background-color: ${v.Score>70?'#d93025':'#f9ab00'};"></div><div class="risk-text">${v.Score}%</div></div>` : "-";
+        let linkMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.Endereco)}`;
 
         return `<tr class="${css}">
             <td><span class="bold-val">${v.Frota}</span><br><span class="driver-info">👤 ${v.Motorista.length > 15 ? v.Motorista.substring(0,15)+'...' : v.Motorista}</span></td>
@@ -684,10 +806,11 @@ function renderizarTabelas() {
             <td style="padding-right:15px;">${htmlScore}</td>
             <td><span style="font-weight: 900; font-size: 14px; color: ${colorVol};">${calcSignal}${v.Volume.toFixed(1)} L</span><br>${tagsHTML}</td>
             <td style="text-align:center; background: rgba(0,0,0,0.02); border-left: 1px solid var(--border); border-right: 1px solid var(--border);">${htmlGlobus}</td>
-            <td class="address-box">${v.Endereco}</td>
+            <td class="address-box"><a href="${linkMaps}" target="_blank" class="map-link">🗺️ ${v.Endereco}</a></td>
             <td class="col-acao">
                 ${v.Tipo !== "ALERTA GLOBUS" ? `<button class="btn-acao btn-cctv" onclick="abrirAssistenteCopiloto('${v.Frota}', '${v.DataIniStr}', '${v.DataFimStr}')">📹 Assistente Copiloto</button>` : ''}
-                <button class="btn-acao" onclick="abrirModalValidacao('${v.Frota}', '${v.DataIniStr}', '${v.Tipo}')">✅ Validar</button>
+                <button class="btn-acao btn-pdf" onclick="gerarDossie('${v.Frota}', '${v.DataIniStr}', '${v.Tipo}')">📄 Dossiê PDF</button>
+                <button class="btn-acao" onclick="abrirModalValidacao('${v.Frota}', '${v.DataIniStr}', '${v.Tipo}')">✅ Classificar</button>
             </td>
         </tr>`;
     }).join('');
@@ -722,10 +845,15 @@ function exportarExcel() {
         "Volume (L)": e.Volume,
         "Rendimento Globus (Km/L)": e.GlobusData ? e.GlobusData.kml.toFixed(2) : "-",
         "Meta Globus (Km/L)": e.GlobusData ? e.GlobusData.metaInfo.min : "-",
+        "Horas Motor (Segsat)": e.HorasMotor ? e.HorasMotor.toFixed(2) : "-",
+        "Velocidade Média (Km/h)": (e.HorasMotor > 0 ? (e.KMRealizado / e.HorasMotor).toFixed(1) : "-"),
         "Estado": e.UF,
         "Endereço": e.Endereco,
         "Rebote (Erro Boia)": e.Rebote ? "SIM" : "NÃO",
-        "Alerta Cruzado": (e.GlobusData && e.GlobusData.isCritical && e.Tipo === "DRENO") ? "SIM (CRÍTICO)" : "NÃO",
+        "Alerta Cruzado (Dreno + Globus)": (e.GlobusData && e.GlobusData.isCritical && e.Tipo === "DRENO") ? "SIM" : "NÃO",
+        "Fraude Marcha Lenta": e.FraudeRetorno ? "SIM" : "NÃO",
+        "Falso Baixo Rendimento (Trânsito)": e.JustificadoTransito ? "SIM" : "NÃO",
+        "Inconsistência de Capacidade (Galão)": e.ExcessoCapacidade ? "SIM" : "NÃO",
         "Link Imagens": e.CctvLink || "-"
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(exportData), "Auditoria Unificada");

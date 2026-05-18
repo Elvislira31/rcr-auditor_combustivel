@@ -1,194 +1,435 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>RCR Auditor v50.0 - Executive Dashboard</title>
+    <title>Plataforma de Auditoria Unificada (Globus + Segsat) v75</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
-        :root { --rcr: #147b6a; --bg: #f0f2f5; --card: #ffffff; --text: #1e293b; --danger: #ff7675; --warning: #fdcb6e; --success: #00b894; --purple: #6c5ce7; }
-        body.dark-mode { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; }
-        .container { max-width: 98%; margin: auto; background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 10px solid var(--rcr); }
-        
-        /* NOVO: Estilos do Dashboard Executivo */
-        .dashboard-panel { display: none; background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        body.dark-mode .dashboard-panel { border-color: #334155; }
-        .dash-stats { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
-        .dash-bar-container { display: flex; width: 100%; height: 24px; border-radius: 12px; overflow: hidden; background: #e2e8f0; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
-        .dash-bar-segment { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        :root { 
+            --parvi-teal: #147b6a; --parvi-cream: #faf8f5; --parvi-white: #ffffff;
+            --parvi-text: #333333; --parvi-border: #c4e1df; --blue: var(--parvi-teal); --red: #d93025;
+            --green: #1e8e3e; --orange: #f9ab00; --bg: var(--parvi-cream); --card-bg: var(--parvi-white);
+            --text: var(--parvi-text); --border: var(--parvi-border); --table-th: var(--parvi-teal);
+            --heat-red: #ffebee; --abast-bg: #e0f2f1; --rebote-bg: #f5f5f5;
+        }
 
-        .filter-panel { display: flex; flex-wrap: wrap; gap: 15px; background: rgba(20, 123, 106, 0.05); padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; align-items: center; }
-        .filter-group { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
-        .filter-group label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--rcr); }
-        .filter-input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: var(--card); color: var(--text); outline: none; font-weight: bold; }
+        body.dark-mode {
+            --parvi-cream: #121212; --parvi-white: #1e1e1e; --parvi-text: #e0e0e0; --parvi-border: #333333;
+            --bg: var(--parvi-cream); --card-bg: var(--parvi-white); --text: var(--parvi-text);
+            --table-th: #0d4a3f; --heat-red: rgba(217, 48, 37, 0.2); --abast-bg: rgba(20,123,106,0.1); --rebote-bg: rgba(255,255,255,0.05);
+        }
 
-        .dropzone { border: 2px dashed #cbd5e1; background: rgba(20, 123, 106, 0.05); padding: 30px; border-radius: 10px; cursor: pointer; text-align: center; margin-bottom: 20px; }
-        
-        .history-panel { display: none; background: #e2e8f0; border-left: 5px solid var(--rcr); padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: bold; align-items: center; justify-content: space-between; }
-        body.dark-mode .history-panel { background: #334155; }
-        
-        .table-header-info { display: none; justify-content: space-between; margin-bottom: 5px; font-size: 12px; font-weight: bold; color: var(--rcr); text-transform: uppercase; }
-        
-        .table-wrap { overflow-x: auto; max-height: 600px; border: 1px solid #e2e8f0; display: none; }
-        table { width: 100%; border-collapse: collapse; min-width: 1800px; font-size: 11px; table-layout: fixed; transition: all 0.3s ease; }
-        th { background: #f1f5f9; padding: 10px; border-bottom: 2px solid var(--rcr); position: sticky; top: 0; z-index: 10; color: #1e293b; transition: all 0.3s ease; }
-        .head-edit { width: 85%; border: 1px dashed #cbd5e1; background: transparent; text-align: center; font-weight: bold; text-transform: uppercase; color: inherit; transition: all 0.3s ease; }
-        
-        td { padding: 4px; border-bottom: 1px solid #eee; text-align: center; transition: all 0.3s ease; }
-        .cell-edit { width: 90%; border: 1px solid transparent; padding: 5px; text-align: center; font-size: 11px; border-radius: 4px; background: transparent; color: inherit; font-weight: bold; transition: all 0.3s ease; }
-        
-        .alert-critical { background: var(--danger) !important; color: white !important; }
-        .alert-attention { background: var(--warning) !important; color: #000 !important; }
-        .alert-hodo { border: 2px dashed var(--danger) !important; background: #ffeaa7 !important; color: #d63031 !important; }
-        .alert-transbordo { background: var(--purple) !important; color: white !important; font-weight: 900 !important; }
-        .alert-furo { background: #1e293b !important; color: #ff7675 !important; border: 2px dashed #ff7675 !important; font-weight: 900 !important; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--parvi-teal); border-radius: 4px; opacity: 0.8; }
 
-        .btn-panel { margin-top: 25px; display: none; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .btn { padding: 12px 30px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-main { background: var(--rcr); color: white; }
-        .btn-ajuste { background: #0984e3; color: white; }
-        .btn-limpar-memoria { background: #d63031; color: white; font-size: 10px; padding: 12px 15px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); overflow: hidden; display: flex; height: 100vh; }
+        
+        .sidebar { width: 340px; min-width: 340px; background: var(--card-bg); border-right: 2px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 20px; box-sizing: border-box; z-index: 10; box-shadow: 4px 0 15px rgba(20,123,106,0.05); }
+        .main-content { flex: 1; padding: 20px; box-sizing: border-box; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; gap: 15px;}
+
+        .brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .brand h2 { margin: 0; color: var(--blue); font-size: 16px; line-height: 1.2; }
+        
+        .tools-row { display: flex; gap: 8px; margin-bottom: 20px; }
+        .btn-tool { flex: 1; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.2s; }
+        .btn-tool:hover { background: var(--border); }
+
+        .dropzone { border: 2px dashed var(--blue); border-radius: 8px; background: rgba(20,123,106,0.03); padding: 25px 15px; text-align: center; cursor: pointer; margin-bottom: 15px; transition: 0.2s;}
+        .dropzone:hover, .dropzone.dragover { background: rgba(20,123,106,0.1); border-color: #0e5e52; }
+        .dropzone-title { font-size: 13px; font-weight: bold; color: var(--blue); display: block; margin-bottom: 5px; pointer-events: none; }
+        .dropzone-desc { font-size: 10px; color: var(--text); opacity: 0.8; pointer-events: none; }
+
+        .btn-main { background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; padding: 15px; width: 100%; transition: 0.3s; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(20,123,106,0.2); }
+        .btn-main:hover { background: #0e5e52; transform: translateY(-2px); }
+
+        .fleet-health { padding: 15px; border-radius: 8px; border: 2px solid var(--red); text-align: center; margin-bottom: 15px; color: var(--red); background: rgba(217,48,37,0.05); }
+        .health-percent { font-size: 32px; font-weight: 900; margin: 5px 0 0 0; }
+        .health-sub { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+
+        .stats-col { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .stat-item { padding: 12px; border-radius: 8px; text-align: left; font-weight: bold; cursor: pointer; border: 1px solid var(--border); background: var(--card-bg); transition: 0.2s; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .stat-item.active-stat { border-color: var(--blue); transform: translateX(5px); box-shadow: -2px 2px 10px rgba(0,0,0,0.05); }
+
+        .ranking-area { margin-top: 5px; }
+        .ranking-title { font-size: 12px; color: var(--red); margin: 0 0 10px 0; text-transform: uppercase; display: flex; align-items: center; gap: 5px;}
+        .ranking-item { background: rgba(217,48,37,0.08); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 11px; border-left: 3px solid var(--red); display: flex; flex-direction: column; cursor: pointer; transition: 0.2s;}
+        .ranking-item:hover { background: rgba(217,48,37,0.15); transform: translateX(5px); box-shadow: -2px 2px 5px rgba(0,0,0,0.05); }
+        .ranking-item b { font-size: 12px; color: var(--text); }
+        body.dark-mode .ranking-item { background: rgba(217,48,37,0.15); }
+        body.dark-mode .ranking-item:hover { background: rgba(217,48,37,0.25); }
+
+        .control-panel { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); flex-shrink: 0;}
+        .tab-filters { display: flex; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .tab-btn { background: transparent; border: none; color: var(--text); font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px 15px; opacity: 0.6; position: relative; transition: 0.2s; }
+        .tab-btn:hover { opacity: 1; }
+        .tab-btn.active { opacity: 1; color: var(--blue); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -12px; left: 0; width: 100%; height: 3px; background: var(--blue); border-radius: 3px 3px 0 0; }
+        
+        .search-filters { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .search-box { flex: 1; min-width: 200px; display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; color: var(--text); font-size: 12px; }
+        
+        .table-container { flex: 1; display: flex; flex-direction: column; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; min-height: 0; }
+        .table-wrapper { flex: 1; overflow-y: auto; display: none; flex-direction: column; }
+        .table-wrapper.active { display: flex; }
+        
+        table.dados { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; }
+        table.dados thead { position: sticky; top: 0; z-index: 5; background: var(--table-th); }
+        table.dados th { padding: 10px; color: white; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;}
+        table.dados td { padding: 10px; vertical-align: middle; border-bottom: 1px solid var(--border); }
+        
+        .badge { color: white; padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-right: 4px; letter-spacing: 0.5px; display: inline-block; margin-top: 4px;}
+        .bg-red { background: var(--red); } .bg-orange { background: var(--orange); } .bg-green { background: var(--green); } .bg-teal { background: var(--parvi-teal); } .bg-blue { background: var(--blue); }
+        .bg-darkred { background: #8b0000; } .bg-gray { background: #757575; } .bg-black { background: #000; } .bg-purple { background: #673ab7; }
+        .bg-globus { background: #6c5ce7; border: 1px solid #a29bfe; font-size: 10px; padding: 4px 8px;}
+        
+        .heat-red td { background-color: var(--heat-red) !important; }
+        .linha-abastecimento td { background-color: var(--abast-bg) !important; }
+        .linha-rebote td { background-color: var(--rebote-bg) !important; opacity: 0.7; }
+        
+        .col-acao { width: 100px; text-align: center; }
+        .btn-acao { background: var(--blue); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; opacity: 0.8; transition: 0.2s; display: block; width: 100%; margin-bottom: 4px;}
+        .btn-acao.btn-cctv { background: #424242; }
+        .btn-acao.btn-pdf { background: var(--orange); color: #000; }
+        table.dados tbody tr:hover .btn-acao { opacity: 1; }
+
+        .time-cell { font-weight: 500; font-size: 11px; white-space: nowrap; color: var(--blue); }
+        .address-box { font-size: 11px; line-height: 1.3; font-weight: 500;}
+        .driver-info { font-size: 10px; color: #666; font-weight: bold; display: block; margin-top: 2px; }
+        body.dark-mode .driver-info { color: #aaa; }
+        .bold-val { font-weight: 700; font-size: 12px;}
+
+        /* BARRA DE RISCO FORENSE */
+        .risk-container { width: 100%; background: #ddd; border-radius: 4px; overflow: hidden; height: 12px; margin-top: 5px; position: relative; }
+        body.dark-mode .risk-container { background: #444; }
+        .risk-bar { height: 100%; transition: width 0.5s ease-in-out; }
+        .risk-text { position: absolute; width: 100%; text-align: center; font-size: 9px; line-height: 12px; color: #000; font-weight: 800; top: 0; left: 0; text-shadow: 0px 0px 2px rgba(255,255,255,0.8); }
+
+        /* MODAIS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 12px; width: 420px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        body.dark-mode .modal-overlay { background: rgba(0,0,0,0.8); }
+        .modal-content h3 { margin-top: 0; color: var(--blue); font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;}
+        .modal-input { width: 100%; padding: 8px 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; background: var(--bg); color: var(--text); outline: none; font-family: inherit; font-size: 12px;}
+        .modal-check { margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .label-modal { font-size: 11px; font-weight: bold; color: var(--text); display: block;}
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="color: var(--rcr); margin: 0;">RCR Auditor v50.0 - Painel Executivo</h2>
-        <button class="btn" style="background:#636e72; color:white; padding: 5px 15px;" onclick="document.body.classList.toggle('dark-mode')">🌓 MODO ESCURO</button>
+<input type="file" id="reportIn" accept=".xlsx,.xls,.csv,.html,.htm" multiple style="display:none">
+
+<aside class="sidebar">
+    <div class="brand">
+        <h2>Auditoria Integrada<br><span style="font-size: 10px; opacity:0.6;">Globus + Segsat v75.0</span></h2>
     </div>
 
-    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileIn').click()">
-        <b>Carregue o relatório HTML do Globus</b>
-        <p style="font-size:11px; color:#666; margin-top:5px;">O sistema avaliará a saúde financeira da frota e montará o painel executivo.</p>
-        <input type="file" id="fileIn" accept=".html,.htm" style="display:none">
+    <div class="tools-row">
+        <button class="btn-tool" onclick="toggleDarkMode()">🌓 Escuro</button>
+        <button class="btn-tool" onclick="exportarExcel()">📥 Baixar Base (Excel)</button>
     </div>
 
-    <div class="dashboard-panel" id="dashboardPanel">
-        <div class="dash-stats">
-            <span style="color: var(--success);">🟢 Normal: <span id="dashNormalNum">0</span></span>
-            <span style="color: var(--warning);">🟡 Atenção: <span id="dashAttNum">0</span></span>
-            <span style="color: var(--danger);">🔴 Crítico: <span id="dashCritNum">0</span></span>
-        </div>
-        <div class="dash-bar-container">
-            <div id="barNormal" class="dash-bar-segment" style="background: var(--success); width: 0%;"></div>
-            <div id="barAttention" class="dash-bar-segment" style="background: var(--warning); width: 0%;"></div>
-            <div id="barCritical" class="dash-bar-segment" style="background: var(--danger); width: 0%;"></div>
-        </div>
+    <div class="dropzone" id="dz-report" onclick="document.getElementById('reportIn').click()">
+        <span class="dropzone-title">📁 Importação Múltipla</span>
+        <span class="dropzone-desc" id="dz-report-text">Selecione arquivos Segsat (Excel) E Globus (HTML) simultaneamente para o cruzamento de dados.</span>
     </div>
 
-    <div class="history-panel" id="historyPanel">
-        <div>📊 Fechamento Geral (<span id="histData">--</span>): <span id="histMedia" style="color:var(--rcr);">-- Km/L</span></div>
-        <div id="histEvolucao">--</div>
+    <button class="btn-main" onclick="processarArquivos()">🔍 CRUZAR INFORMAÇÕES</button>
+
+    <div id="fleetHealthBanner" class="fleet-health" style="display:none;">
+        <p class="health-sub">Volume de Desvios Detectados</p>
+        <p id="totalDrainText" class="health-percent">0 L</p>
     </div>
 
-    <div class="filter-panel" id="filterPanel" style="display:none;">
-        <div class="filter-group" style="flex-grow: 2;">
-            <label>Pesquisa Rápida (Prefixo, Data, Bomba...)</label>
-            <input type="text" id="filtroTexto" class="filter-input" placeholder="Pesquisar frota..." onkeyup="filtrarTabela()">
+    <div class="stats-col" id="statsArea" style="display:none;">
+        <div class="stat-item active-stat" id="box_eventos" onclick="toggleView('eventos')">
+            <span>🚨</span><div><span id="sE">0</span> Alertas Pendentes</div>
         </div>
-        <div class="filter-group">
-            <label>Auditoria de Rendimento (Km/L)</label>
-            <select id="filtroKm" class="filter-input" onchange="filtrarTabela()">
-                <option value="ALL">Visualizar Toda a Frota</option>
-                <option value="CRITICAL">🔴 Rendimento Crítico (Abaixo da Meta)</option>
-                <option value="ATTENTION">🟡 Em Atenção (Próximo do Limite)</option>
-                <option value="NORMAL">🟢 Rendimento Saudável</option>
-            </select>
-        </div>
-        <div class="filter-group" style="flex-grow: 0;">
-            <label>&nbsp;</label>
-            <button class="btn" style="background:#94a3b8; color:white; padding: 10px;" onclick="limparFiltros()">Limpar Filtros</button>
+        <div class="stat-item" id="box_verificados" onclick="toggleView('verificados')">
+            <span>✅</span><div><span id="sV">0</span> Ocorrências Validadas</div>
         </div>
     </div>
 
-    <div id="tableHeaderInfo" class="table-header-info">
-        <span>Filtros processados em tempo real</span>
-        <span>Abastecimentos Auditados: <span id="contadorLinhas" style="background: var(--rcr); color: white; padding: 2px 8px; border-radius: 12px;">0</span></span>
+    <div class="ranking-area" id="rankingArea" style="display:none;">
+        <h4 class="ranking-title">⚠️ Top Veículos com Inconsistências</h4>
+        <div id="topInfratoresList"></div>
+    </div>
+</aside>
+
+<main class="main-content">
+    
+    <div class="control-panel" id="controlPanel" style="display: none;">
+        <div class="tab-filters">
+            <button class="tab-btn active" id="tab_ALL" onclick="setTab('ALL')">TUDO</button>
+            <button class="tab-btn" id="tab_DRENO" onclick="setTab('DRENO')">SÓ PERDAS / DRENOS</button>
+            <button class="tab-btn" id="tab_GLOBUS" onclick="setTab('GLOBUS')">SÓ ALARMES GLOBUS</button>
+        </div>
+        
+        <div class="search-filters">
+            <div class="search-box">
+                <span style="opacity: 0.5; margin-right: 8px;">🔍</span>
+                <input type="text" id="fGlobal" placeholder="Pesquisar Placa ou Motorista..." onkeyup="aplicarFiltros()">
+            </div>
+            <div class="search-box" style="flex: none; width: 140px;">
+                <input type="number" id="fVolMin" placeholder="Volume > que (L)" onkeyup="aplicarFiltros()" min="0">
+            </div>
+        </div>
     </div>
 
-    <div class="table-wrap" id="tableWrap">
-        <table id="mainTable">
-            <thead><tr id="headerRow"></tr></thead>
-            <tbody id="tBody"></tbody>
-        </table>
-    </div>
+    <div class="table-container" id="tableContainer">
+        
+        <div class="table-wrapper active" id="wrapE">
+            <table class="dados active" id="tabE">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Veículo</th>
+                        <th style="width: 12%;">Início / Fim</th>
+                        <th style="width: 12%;">Risco Forense</th>
+                        <th style="width: 15%;">Volume Segsat</th>
+                        <th style="width: 18%;">Rendimento Globus</th>
+                        <th style="width: 20%;">Localização GPS</th>
+                        <th class="col-acao">Ações Analíticas</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyE"></tbody>
+            </table>
+        </div>
 
-    <div class="btn-panel" id="btnPanel">
-        <button class="btn btn-ajuste" id="btnAjuste" onclick="ajustarColunas()">↔️ Ajustar Colunas</button>
-        <button class="btn btn-main" onclick="exportarExcel()">Baixar Planilha Auditada (Excel)</button>
-        <button class="btn btn-limpar-memoria" onclick="limparMemoriaHodo()">Resetar Memória de Hodómetros</button>
+        <div class="table-wrapper" id="wrapV">
+            <table class="dados active" id="tabV">
+                <thead>
+                    <tr>
+                        <th>Identificação</th>
+                        <th>Período</th>
+                        <th>Volume</th>
+                        <th>Rendimento</th>
+                        <th>Parecer da Auditoria</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyV"></tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+<div id="modalCctvAssist" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h3>📹 Assistente Copiloto Segsat</h3>
+        <p style="font-size:11px; margin-bottom:15px; color:var(--text); opacity: 0.8; line-height:1.4;">
+            Sistemas modernos bloqueiam preenchimento automático. Use os botões <b>Copiar</b> para transferir as informações.
+        </p>
+        <label class="label-modal">Placa do Veículo:</label>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <input type="text" id="cctvVeiculo" class="modal-input" style="margin-bottom:0;" readonly>
+            <button class="btn-tool" onclick="copiarCampo('cctvVeiculo', this)" style="width:85px; font-weight:bold;">Copiar</button>
+        </div>
+        <label class="label-modal">Data Inicial (Margem -10 min):</label>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <input type="text" id="cctvInicio" class="modal-input" style="margin-bottom:0;" readonly>
+            <button class="btn-tool" onclick="copiarCampo('cctvInicio', this)" style="width:85px; font-weight:bold;">Copiar</button>
+        </div>
+        <label class="label-modal">Data Final (Margem +5 min):</label>
+        <div style="display:flex; gap:5px; margin-bottom:20px;">
+            <input type="text" id="cctvFim" class="modal-input" style="margin-bottom:0;" readonly>
+            <button class="btn-tool" onclick="copiarCampo('cctvFim', this)" style="width:85px; font-weight:bold;">Copiar</button>
+        </div>
+        <button onclick="abrirPaginaCopiloto()" class="btn-main" style="margin-bottom:8px; background-color:#424242;">🌐 Abrir Portal Copiloto</button>
+        <button onclick="fecharModalCctv()" class="btn-tool" style="width:100%; border-color:var(--red); color:var(--red);">Fechar</button>
+    </div>
+</div>
+
+<div id="modalAuditoria" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h3>✅ Classificar Ocorrência <br><span style="font-size:12px; color:var(--text); font-weight:normal;" id="modalFrotaInfo"></span></h3>
+        <label class="label-modal">Classificação da Ocorrência *</label>
+        <select id="modalClassificacao" class="modal-input" required style="font-weight:bold;">
+            <option value="">-- Selecione o Resultado da Análise --</option>
+            <option value="Desvio Consolidado">🚨 Desvio Consolidado (Drenagem Indevida)</option>
+            <option value="Falso Positivo">♻️ Falso Positivo (Erro de Boia / Balanço)</option>
+            <option value="Manutenção Autorizada">🛡️ Manutenção / Uso Autorizado na Oficina</option>
+            <option value="Abastecimento Confirmado">⛽ Abastecimento Válido</option>
+            <option value="Outro (Ver Descrição)">Outra Situação (Descrever abaixo)</option>
+        </select>
+        <label class="label-modal">Observações / Descrição (Opcional):</label>
+        <textarea id="modalDescricao" class="modal-input" placeholder="Adicione detalhes..." style="resize:vertical; min-height:50px;"></textarea>
+        <label class="modal-check" style="margin-top:5px; border-top: 1px dashed var(--border); padding-top:15px;">
+            <input type="checkbox" id="modalCctvOk"> 
+            Imagens do Copiloto Resgatadas?
+        </label>
+        <label class="label-modal">Link da Evidência (Drive / OneDrive):</label>
+        <input type="text" id="modalCctvLink" class="modal-input" placeholder="Cole o URL do vídeo aqui...">
+        
+        <button onclick="confirmarValidacao()" class="btn-main" style="margin-bottom:8px;">Salvar Validação</button>
+        <button onclick="fecharModal()" class="btn-tool" style="width:100%; border-color:var(--red); color:var(--red);">Cancelar</button>
     </div>
 </div>
 
 <script>
-    if (localStorage.getItem('rcr_version') !== 'v50.0') {
-        localStorage.removeItem('rcr_auditor_layout');
-        localStorage.setItem('rcr_version', 'v50.0');
+let baseEventos = [];
+let baseAuditados = [];
+let eventosExibidos = [];
+let dbGlobus = {}; 
+let activeTabFilter = 'ALL';
+let eventoSendoValidado = null; 
+
+const ZONAS_SEGURAS = ['GARAGEM', 'OFICINA', 'BASE', 'SEDE', 'CONCESSIONARIA', 'MANUTENCAO'];
+const ZONAS_PERIGO = ['BR-', 'RODOVIA', 'POSTO', 'PARADA', 'ACOSTAMENTO', 'BA-', 'PE-', 'MA-'];
+const ALIAS_INICIO = ['início', 'inicio', 'inicio do dreno', 'hora', 'hora do abastecimento ou carga', 'data', 'data inicio'];
+const ALIAS_FIM = ['fim', 'final', 'fim do dreno', 'final do dreno', 'termino', 'data fim'];
+
+const dropzone = document.getElementById('dz-report');
+const fileInput = document.getElementById('reportIn');
+const textSpan = document.getElementById('dz-report-text');
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = 'var(--red)'; });
+dropzone.addEventListener('dragleave', e => { dropzone.style.borderColor = 'var(--blue)'; });
+dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.style.borderColor = 'var(--blue)';
+    if(e.dataTransfer.files.length > 0) { 
+        fileInput.files = e.dataTransfer.files; 
+        textSpan.innerHTML = `<b>${e.dataTransfer.files.length} arquivo(s) preparado(s)</b>`; 
     }
+});
+fileInput.addEventListener('change', e => { 
+    textSpan.innerHTML = e.target.files.length > 0 ? `<b>${e.target.files.length} arquivo(s) preparado(s)</b>` : 'Arraste os arquivos aqui'; 
+});
 
-    let db = [];
-    let colunasAjustadas = false;
+function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+function setTab(tabName) {
+    activeTabFilter = tabName;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab_' + tabName.replace(/\s/g, '_')).classList.add('active');
+    aplicarFiltros();
+}
+function toggleView(v) {
+    document.querySelectorAll('.stat-item').forEach(el => el.classList.remove('active-stat'));
+    document.getElementById('box_' + v).classList.add('active-stat');
+    document.querySelectorAll('.table-wrapper').forEach(el => el.classList.remove('active'));
+    document.getElementById(v === 'eventos' ? 'wrapE' : 'wrapV').classList.add('active');
+}
+function parseSegsatDate(dateStr) {
+    if(!dateStr) return new Date(0);
+    let parts = dateStr.split(' ');
+    if(parts.length < 2) return new Date(0);
+    let d = parts[0].split('.');
+    let t = parts[1].split(':');
+    if(d.length === 3 && t.length >= 2) return new Date(d[2], d[1]-1, d[0], t[0], t[1], t[2]||0);
+    return new Date(0);
+}
 
-    const getMetaInfo = (pref) => {
-        let p = parseInt(pref);
-        if (p >= 1000 && p <= 1999) return { cat: "VAN", min: 7.0, tqMax: 90 }; 
-        if (p >= 2000 && p <= 4999) return { cat: "MICRO", min: 3.5, tqMax: 150 };
-        return { cat: "ONIBUS", min: 2.1, tqMax: 300 }; 
-    };
+// METAS GLOBUS
+const getMetaGlobus = (pref) => {
+    let p = parseInt(pref);
+    if (p >= 1000 && p <= 1999) return { cat: "VAN", min: 7.0 }; 
+    if (p >= 2000 && p <= 4999) return { cat: "MICRO", min: 3.5 };
+    return { cat: "ONIBUS", min: 2.1 }; 
+};
 
-    const defaultOrder = [
-        {key: 'pref', label: 'Prefixo'}, {key: 'data', label: 'Data'}, {key: 'hora', label: 'Hora'},
-        {key: 'tipo', label: 'T'}, {key: 'bb', label: 'Bb'}, {key: 'tq', label: 'Tq'},
-        {key: 'comb', label: 'Comb.'}, {key: 'hini', label: 'Hod. Ini'}, {key: 'hfin', label: 'Hod. Fin'},
-        {key: 'km', label: 'Km'}, {key: 'kml', label: 'Km/L'}
-    ];
+// HELPERS UI
+function abrirAssistenteCopiloto(frota, iniStr, fimStr) {
+    let dIni = parseSegsatDate(iniStr);
+    let dFim = parseSegsatDate(fimStr);
+    if (dIni.getTime() === new Date(0).getTime()) return alert("Data irreconhecível.");
+    dIni.setMinutes(dIni.getMinutes() - 10); 
+    dFim.setMinutes(dFim.getMinutes() + 5);  
+    const fmtDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    document.getElementById('cctvVeiculo').value = frota;
+    document.getElementById('cctvInicio').value = fmtDate(dIni);
+    document.getElementById('cctvFim').value = fmtDate(dFim);
+    document.getElementById('modalCctvAssist').style.display = 'flex';
+}
+function fecharModalCctv() { document.getElementById('modalCctvAssist').style.display = 'none'; }
+function copiarCampo(id, btn) {
+    let copyText = document.getElementById(id);
+    copyText.select(); document.execCommand("copy");
+    let oldText = btn.innerText; btn.innerText = "✓"; btn.style.background = "var(--green)";
+    setTimeout(() => { btn.innerText = oldText; btn.style.background = ""; }, 1500);
+}
+function abrirPaginaCopiloto() { window.open(`https://copiloto.segsat.com/video-download/task/0`, '_blank'); }
 
-    window.onload = () => {
-        const saved = localStorage.getItem('rcr_auditor_layout');
-        const layout = saved ? JSON.parse(saved) : defaultOrder;
-        const headerRow = document.getElementById('headerRow');
-        headerRow.innerHTML = "";
-        layout.forEach(col => {
-            const th = document.createElement('th');
-            th.dataset.key = col.key;
-            th.innerHTML = `<input class="head-edit" value="${col.label}" readonly style="border:none;">`;
-            headerRow.appendChild(th);
-        });
-    };
+function abrirModalValidacao(frota, dataIniStr, tipo) {
+    eventoSendoValidado = { frota, dataIniStr, tipo };
+    document.getElementById('modalFrotaInfo').innerText = `Veículo ${frota} | ${dataIniStr}`;
+    document.getElementById('modalClassificacao').value = "";
+    document.getElementById('modalDescricao').value = "";
+    document.getElementById('modalCctvOk').checked = false;
+    document.getElementById('modalCctvLink').value = "";
+    document.getElementById('modalAuditoria').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalAuditoria').style.display = 'none'; eventoSendoValidado = null; }
 
-    document.getElementById('fileIn').addEventListener('change', function(e) {
-        const reader = new FileReader();
-        reader.onload = (ev) => processar(ev.target.result);
-        reader.readAsText(e.target.files[0], 'ISO-8859-1');
-    });
+function confirmarValidacao() {
+    if (!eventoSendoValidado) return;
+    let classif = document.getElementById('modalClassificacao').value;
+    if (classif === "") return alert("Selecione a Classificação.");
+    
+    const idx = baseEventos.findIndex(v => v.Frota === eventoSendoValidado.frota && v.DataIniStr === eventoSendoValidado.dataIniStr && v.Tipo === eventoSendoValidado.tipo);
+    if(idx !== -1) {
+        let evento = baseEventos.splice(idx, 1)[0];
+        evento.Classificacao = classif;
+        evento.Observacao = document.getElementById('modalDescricao').value.trim();
+        evento.CctvResgatado = document.getElementById('modalCctvOk').checked;
+        evento.CctvLink = document.getElementById('modalCctvLink').value.trim();
 
-    function limparMemoriaHodo() {
-        if(confirm("Deseja apagar a memória de furos de garagem? (O sistema recomeçará a aprender os hodómetros a partir do próximo relatório)")){
-            localStorage.removeItem('rcr_memoria_hodo');
-            alert("Memória limpa com sucesso!");
+        if (evento.Tipo === "DRENO" && !evento.Rebote && !evento.ZonaSegura) {
+            let currentTotal = parseFloat(document.getElementById('totalDrainText').innerText.replace(' L', ''));
+            let newTotal = currentTotal - evento.Volume;
+            document.getElementById('totalDrainText').innerText = `${newTotal > 0 ? newTotal.toFixed(1) : 0} L`;
         }
+        baseAuditados.push(evento);
+        aplicarFiltros();
+        atualizarTopInfratores(baseEventos);
     }
+    fecharModal();
+}
 
-    // BASE DE LEITURA BLINDADA
-    function processar(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        
+function extractLiters(val) {
+    if (val === undefined || val === null || val === "" || String(val).includes("-----")) return 0;
+    if (typeof val === 'number') return val;
+    let str = String(val).trim().replace(/[^0-9.,-]/g, '');
+    if (str.includes('.') && str.includes(',')) str = str.lastIndexOf(',') > str.lastIndexOf('.') ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
+    else if (str.includes(',')) str = str.replace(',', '.'); 
+    return parseFloat(str) || 0;
+}
+
+const readFileAsync = (file) => {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => resolve({ name: file.name, data: reader.result });
+        reader.onerror = reject;
+        if(file.name.toLowerCase().endsWith('.html') || file.name.toLowerCase().endsWith('.htm')) reader.readAsText(file, 'ISO-8859-1');
+        else reader.readAsArrayBuffer(file);
+    });
+};
+
+// CORE: CRUZAMENTO DE DADOS
+async function processarArquivos() {
+    if (!fileInput.files || fileInput.files.length === 0) return alert("Selecione os arquivos HTML (Globus) e/ou Excel (Segsat).");
+    
+    baseEventos = []; dbGlobus = {}; hashDeEventos = new Set();
+    document.getElementById('btnPanel') ? document.getElementById('btnPanel').style.display='none' : null;
+
+    let files = Array.from(fileInput.files);
+    let parsedFiles = await Promise.all(files.map(f => readFileAsync(f)));
+
+    // PASSO 1: LER GLOBUS (Para criar a base de Inteligência Financeira de Km/L)
+    parsedFiles.filter(f => f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')).forEach(f => {
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(f.data, "text/html");
         let pages = Array.from(doc.querySelectorAll(".pagina"));
-        if (pages.length === 0) { pages = [doc]; }
-
-        db = [];
+        if (pages.length === 0) pages = [doc];
 
         pages.forEach(page => {
             const allDivs = Array.from(page.querySelectorAll("div"));
             let rowsY = {};
             allDivs.forEach(div => {
-                let y = parseInt(div.style.top);
-                let x = parseInt(div.style.left);
-                let txt = div.innerText.trim();
+                let y = parseInt(div.style.top), x = parseInt(div.style.left), txt = div.innerText.trim();
                 if (isNaN(y) || isNaN(x) || !txt) return;
-                
                 let keyY = Object.keys(rowsY).find(k => Math.abs(k - y) <= 4);
                 if (!keyY) { keyY = y; rowsY[keyY] = []; }
                 rowsY[keyY].push({ x: x, txt: txt });
@@ -196,341 +437,300 @@
 
             let headerY = Object.keys(rowsY).find(y => {
                 let text = rowsY[y].map(e => e.txt.toUpperCase()).join(' ');
-                return text.includes('COMB') && text.includes('KM') && text.includes('HORA');
+                return text.includes('COMB') && text.includes('KM');
             });
-
             if (!headerY) return; 
 
             let headers = rowsY[headerY].map(e => ({ name: e.txt.toUpperCase().replace(/[^A-Z]/g, ''), x: e.x })).sort((a,b) => a.x - b.x);
-            let headerYInt = parseInt(headerY);
-
-            let maxDateY = 0;
+            
             Object.keys(rowsY).forEach(y => {
-                let hasDate = rowsY[y].some(e => /\d{2}\/\d{2}\/\d{4}/.test(e.txt));
-                if (hasDate && parseInt(y) > maxDateY) { maxDateY = parseInt(y); }
-            });
-
-            Object.keys(rowsY).forEach(y => {
-                let yInt = parseInt(y);
-                if (yInt <= headerYInt || (maxDateY > 0 && yInt > maxDateY + 5)) return;
+                if (parseInt(y) <= parseInt(headerY)) return;
                 let linha = rowsY[y].sort((a,b) => a.x - b.x);
-                let isLixo = linha.some(e => 
-                    e.txt.toUpperCase().includes('TOTAL') || 
-                    e.txt.toUpperCase().includes('PRAXIO') || 
-                    /\s-\s/.test(e.txt) || 
-                    /^[0-9]+\s+(VAN|ONIBUS|MICRO)/i.test(e.txt)
-                );
-                if (isLixo) return;
+                if (linha.some(e => /TOTAL|PRAXIO| - |^[0-9]+\s+(VAN|ONIBUS|MICRO)/i.test(e.txt))) return;
                 
-                let horaElem = linha.find(e => /\b\d{2}:\d{2}(:\d{2})?\b/.test(e.txt));
                 let dataElem = linha.find(e => /\d{2}\/\d{2}\/\d{4}/.test(e.txt));
-                if (!horaElem || !dataElem) return; 
+                if (!dataElem) return; 
 
                 let prefElem = linha.find(e => e.x < dataElem.x && /^\d+$/.test(e.txt.replace(/^0+/, '')));
                 if (!prefElem) prefElem = linha.find(e => /^\d+$/.test(e.txt));
                 let p = prefElem ? prefElem.txt.replace(/^0+/, '') : "";
 
-                let validCells = linha.filter(e => e !== dataElem && e !== prefElem);
                 let rowData = {};
-                validCells.forEach(cell => {
+                linha.forEach(cell => {
                     let closestHeader = headers.reduce((prev, curr) => Math.abs(curr.x - cell.x) < Math.abs(prev.x - cell.x) ? curr : prev);
                     rowData[closestHeader.name] = (rowData[closestHeader.name] ? rowData[closestHeader.name] + " " : "") + cell.txt;
                 });
 
-                const getStr = (names) => {
-                    for (let n of names) if (rowData[n] !== undefined) return rowData[n].replace(/\*/g, '').trim();
-                    return "";
-                };
-                const getNum = (names) => {
-                    let val = getStr(names).split(' ')[0];
-                    return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
-                };
+                let combReal = parseFloat((rowData['COMB']||"").split(' ')[0].replace(/\./g, '').replace(',', '.')) || 0;
+                let kmReal = parseFloat((rowData['KM']||"").split(' ')[0].replace(/\./g, '').replace(',', '.')) || 0;
 
-                let combReal = getNum(['COMB']);
-                let kmReal = getNum(['KM']);
-                let kmlGlobus = getNum(['KML']);
-                let kmlCalculado = combReal > 0 ? Math.round((kmReal / combReal) * 100) / 100 : kmlGlobus;
+                if(p && combReal > 0) {
+                    if(!dbGlobus[p]) dbGlobus[p] = { comb: 0, km: 0, metaInfo: getMetaGlobus(p) };
+                    dbGlobus[p].comb += combReal;
+                    dbGlobus[p].km += kmReal;
+                }
+            });
+        });
+    });
 
-                db.push({
-                    pref: p,
-                    data: dataElem.txt.split(' ')[0],
-                    hora: horaElem.txt.match(/(\d{1,2}):(\d{2})/) ? horaElem.txt.match(/(\d{1,2}):(\d{2})/)[0] + ":00" : "00:00:00",
-                    tipo: getStr(['T', 'TIPO']).toUpperCase().includes('E') ? 'E' : 'I',
-                    bb: getStr(['BB', 'BOMBA']).split(' ')[0],
-                    tq: getStr(['TQ', 'TANQUE']).split(' ')[0],
-                    comb: combReal,
-                    hini: getNum(['HODINI']),
-                    hfin: getNum(['HODFIN']),
-                    km: kmReal,
-                    kml: kmlCalculado,
-                    meta: getMetaInfo(p)
+    // Calcula as médias finais do Globus
+    for(let p in dbGlobus) {
+        dbGlobus[p].kml = dbGlobus[p].comb > 0 ? (dbGlobus[p].km / dbGlobus[p].comb) : 0;
+        dbGlobus[p].isCritical = dbGlobus[p].kml > 0 && dbGlobus[p].kml < dbGlobus[p].metaInfo.min;
+    }
+
+    // PASSO 2: LER SEGSAT E CRUZAR COM GLOBUS
+    parsedFiles.filter(f => f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.csv')).forEach(f => {
+        const workbook = XLSX.read(new Uint8Array(f.data), {type: 'array'});
+        workbook.SheetNames.forEach(sheetName => {
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {raw: false, defval: ""});
+            json.forEach(row => {
+                let frotaRaw = row['Agrupamento'] || row['Veículo'] || row['Frota'] || "";
+                let frota = frotaRaw.toString().trim().toUpperCase().replace(/[*]/g, "").replace(/^0+/, "");
+                
+                let dataInicio = row['Início'] || row['Hora'] || row['Hora do abastecimento ou carga'] || "";
+                let dataFim = row['Fim'] || row['Hora'] || dataInicio;
+                
+                let isDreno = row['Drenado'] !== undefined && row['Drenado'] !== "" && !String(row['Drenado']).includes("-----");
+                let isAbast = row['Abastecido'] !== undefined && row['Abastecido'] !== "" && !String(row['Abastecido']).includes("-----");
+                
+                let tipoEvento = ""; let volumeFinal = 0;
+                let nivelIni = extractLiters(row['Nível de combustível inicial']);
+                let nivelFim = extractLiters(row['Nível de combustível final']);
+
+                if (isDreno) {
+                    tipoEvento = "DRENO";
+                    volumeFinal = Math.abs(nivelFim - nivelIni) > 0 ? Math.abs(nivelFim - nivelIni) : extractLiters(row['Drenado']);
+                } else if (isAbast) {
+                    tipoEvento = "ABASTECIMENTO";
+                    volumeFinal = Math.abs(nivelFim - nivelIni) > 0 ? Math.abs(nivelFim - nivelIni) : extractLiters(row['Abastecido']);
+                }
+
+                // REGRA 500L
+                if (frota && volumeFinal > 0 && volumeFinal <= 500 && tipoEvento !== "") {
+                    let endereco = row['Posição inicial'] || row['Localização'] || row['Endereço'] || row['Posição final'] || "GPS Desconhecido";
+                    let repouso = extractLiters(row['Velocidade inicial']) === 0 && extractLiters(row['Velocidade final']) === 0;
+
+                    let chaveUnica = `${frota}-${dataInicio}-${tipoEvento}-${volumeFinal}`;
+                    if (!hashDeEventos.has(chaveUnica)) {
+                        hashDeEventos.add(chaveUnica);
+                        
+                        let globusMatch = dbGlobus[frota] || null;
+
+                        baseEventos.push({
+                            Frota: frota,
+                            Motorista: (row['Motorista'] || "N/A").toString().trim().toUpperCase(),
+                            DataIniStr: dataInicio, DataFimStr: dataFim,
+                            DataRaw: parseSegsatDate(dataInicio),
+                            Volume: volumeFinal, NivelInicial: nivelIni, NivelFinal: nivelFim,
+                            Endereco: endereco, Tipo: tipoEvento, Repouso: repouso,
+                            Rebote: false, ZonaSegura: false, ZonaPerigo: false, GotaAGota: false,
+                            GlobusData: globusMatch, // Ouro Forense
+                            Score: 0, CctvResgatado: false, CctvLink: "", Classificacao: "", Observacao: "",
+                            RawData: row
+                        });
+                    }
+                }
+            });
+        });
+    });
+
+    // PASSO 3: EVENTOS VIRTUAIS DO GLOBUS (Veículos que fraudaram via KM/L sem dreno físico no Segsat)
+    for (let p in dbGlobus) {
+        if (dbGlobus[p].isCritical) {
+            let temNoSegsat = baseEventos.some(e => e.Frota === p);
+            if (!temNoSegsat) {
+                baseEventos.push({
+                    Frota: p, Motorista: "Análise Globus",
+                    DataIniStr: "Fechamento Globus", DataFimStr: "Fechamento Globus",
+                    DataRaw: new Date(), Volume: 0, NivelInicial: 0, NivelFinal: 0,
+                    Endereco: "Análise de Rota Sistêmica", Tipo: "ALERTA GLOBUS", Repouso: false,
+                    GlobusData: dbGlobus[p], Score: 80, // Risco alto direto
+                    CctvResgatado: false, CctvLink: "", Classificacao: "", Observacao: ""
                 });
-            });
-        });
-        
-        let memoriaHodo = JSON.parse(localStorage.getItem('rcr_memoria_hodo')) || {};
-        
-        db.forEach(r => {
-            let p = r.pref;
-            r.furoGaragem = 0;
-            if (memoriaHodo[p] && r.hini > 0) {
-                let diferenca = r.hini - memoriaHodo[p].hfin;
-                if (diferenca > 3) { r.furoGaragem = diferenca; }
             }
-            if (r.hfin > 0) {
-                if (!memoriaHodo[p] || r.hfin > memoriaHodo[p].hfin) {
-                    memoriaHodo[p] = { hfin: r.hfin, data: r.data };
-                }
-            }
-        });
-        
-        localStorage.setItem('rcr_memoria_hodo', JSON.stringify(memoriaHodo));
-
-        document.getElementById('dropzone').style.display = 'none';
-        document.getElementById('filterPanel').style.display = 'flex';
-        document.getElementById('tableHeaderInfo').style.display = 'flex';
-        
-        processarHistoricoSilencioso();
-        renderTable();
-    }
-
-    // NOVA FUNÇÃO: Atualizar o Dashboard Executivo
-    function atualizarDashboard() {
-        if (!db.length) return;
-        
-        let normal = 0, attention = 0, critical = 0;
-        
-        db.forEach(r => {
-            if (r.kml < r.meta.min && r.comb > 0) critical++;
-            else if (r.kml < r.meta.min + 0.5 && r.comb > 0) attention++;
-            else normal++;
-        });
-
-        let total = normal + attention + critical;
-        if(total === 0) return;
-
-        document.getElementById('dashNormalNum').innerText = normal;
-        document.getElementById('dashAttNum').innerText = attention;
-        document.getElementById('dashCritNum').innerText = critical;
-
-        let pctNormal = (normal / total) * 100;
-        let pctAtt = (attention / total) * 100;
-        let pctCrit = (critical / total) * 100;
-
-        let bNormal = document.getElementById('barNormal');
-        let bAtt = document.getElementById('barAttention');
-        let bCrit = document.getElementById('barCritical');
-
-        bNormal.style.width = pctNormal + '%';
-        bNormal.innerText = pctNormal > 5 ? Math.round(pctNormal) + '%' : '';
-
-        bAtt.style.width = pctAtt + '%';
-        bAtt.innerText = pctAtt > 5 ? Math.round(pctAtt) + '%' : '';
-
-        bCrit.style.width = pctCrit + '%';
-        bCrit.innerText = pctCrit > 5 ? Math.round(pctCrit) + '%' : '';
-
-        document.getElementById('dashboardPanel').style.display = 'block';
-    }
-
-    function processarHistoricoSilencioso() {
-        if (!db.length) return;
-        let datas = db.map(r => r.data);
-        let dataRelatorio = datas.sort((a,b) => datas.filter(v => v===a).length - datas.filter(v => v===b).length).pop();
-        let totalLitros = db.reduce((acc, curr) => acc + curr.comb, 0);
-        let totalKm = db.reduce((acc, curr) => acc + curr.km, 0);
-        let mediaGeral = totalLitros > 0 ? (totalKm / totalLitros) : 0;
-        let historico = JSON.parse(localStorage.getItem('rcr_historico_fechamento')) || {};
-        let diasRegistrados = Object.keys(historico).sort((a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')));
-        let textoEvolucao = "Sem dados anteriores para comparação.";
-        let corEvolucao = "#64748b";
-
-        if (diasRegistrados.length > 0 && !historico[dataRelatorio]) {
-            let ultimoDia = diasRegistrados[diasRegistrados.length - 1];
-            let mediaAnterior = historico[ultimoDia].media;
-            let diff = ((mediaGeral - mediaAnterior) / mediaAnterior) * 100;
-
-            if (diff > 0) {
-                textoEvolucao = `📈 Melhoria de +${diff.toFixed(1)}% em relação ao dia ${ultimoDia}`;
-                corEvolucao = "var(--success)";
-            } else if (diff < 0) {
-                textoEvolucao = `📉 Queda de ${diff.toFixed(1)}% em relação ao dia ${ultimoDia}`;
-                corEvolucao = "var(--danger)";
-            } else {
-                textoEvolucao = `➖ Manteve a mesma média do dia ${ultimoDia}`;
-            }
-        } else if (historico[dataRelatorio]) {
-            textoEvolucao = "Fechamento diário já consolidado em cache.";
-        }
-
-        historico[dataRelatorio] = { litros: totalLitros, media: mediaGeral };
-        localStorage.setItem('rcr_historico_fechamento', JSON.stringify(historico));
-
-        document.getElementById('histData').innerText = dataRelatorio;
-        document.getElementById('histMedia').innerText = `${mediaGeral.toFixed(2)} Km/L (Total: ${totalLitros.toLocaleString('pt-PT')} L)`;
-        let evElement = document.getElementById('histEvolucao');
-        evElement.innerText = textoEvolucao;
-        evElement.style.color = corEvolucao;
-        document.getElementById('historyPanel').style.display = 'flex';
-    }
-
-    function renderTable() {
-        const body = document.getElementById('tBody');
-        body.innerHTML = "";
-        const order = defaultOrder.map(c => c.key);
-
-        db.forEach((r, i) => {
-            const tr = document.createElement('tr');
-            
-            let statusLinha = "NORMAL";
-            if (r.kml < r.meta.min && r.comb > 0) statusLinha = "CRITICAL";
-            else if (r.kml < r.meta.min + 0.5 && r.comb > 0) statusLinha = "ATTENTION";
-            
-            tr.dataset.status = statusLinha;
-
-            let hodoDiferenca = Math.abs((r.hfin - r.hini) - r.km);
-            let hodoFraudulento = (hodoDiferenca > 2 && r.hfin > 0 && r.hini > 0); 
-            let tanqueTransbordo = (r.comb > r.meta.tqMax * 1.05); 
-
-            order.forEach(key => {
-                const td = document.createElement('td');
-                let val = r[key];
-                
-                if (key === 'kml') {
-                    val = parseFloat(val).toFixed(2);
-                    if (statusLinha === "CRITICAL") td.className = "alert-critical";
-                    else if (statusLinha === "ATTENTION") td.className = "alert-attention";
-                }
-                
-                if (key === 'km' && hodoFraudulento) {
-                    td.className = "alert-hodo";
-                    td.title = `⚠️ Fraude Intradiária: (Hod.Final ${r.hfin} - Hod.Inicial ${r.hini}) = ${r.hfin - r.hini} Km. O sistema diz que andou ${r.km} Km.`;
-                }
-
-                if (key === 'hini' && r.furoGaragem > 0) {
-                    td.className = "alert-furo";
-                    td.title = `🚨 Furo de Garagem! Veículo rodou ${r.furoGaragem} Km sem registo desde o último relatório inserido.`;
-                }
-
-                if (key === 'comb' && tanqueTransbordo) {
-                    td.className = "alert-transbordo";
-                    td.title = `🚨 TRANSBORDO: Abasteceu ${r.comb}L num tanque que suporta no máximo ${r.meta.tqMax}L.`;
-                }
-                
-                td.innerHTML = `<input class="cell-edit" value="${val}" data-key="${key}" oninput="syncData(${i}, '${key}', this)">`;
-                tr.appendChild(td);
-            });
-            body.appendChild(tr);
-        });
-        
-        document.getElementById('tableWrap').style.display = 'block';
-        document.getElementById('btnPanel').style.display = 'flex';
-        
-        if (colunasAjustadas) { colunasAjustadas = false; ajustarColunas(); }
-        
-        atualizarDashboard(); // Recalcula o gráfico
-        filtrarTabela(); 
-    }
-
-    function syncData(index, key, input) {
-        let val = input.value;
-        let r = db[index];
-        
-        if (key === 'km' || key === 'comb' || key === 'kml' || key === 'hini' || key === 'hfin') {
-            db[index][key] = parseFloat(val.replace(',', '.')) || 0;
-            
-            if (key === 'km' || key === 'comb') {
-                r.kml = r.comb > 0 ? Math.round((r.km / r.comb) * 100) / 100 : 0;
-                const tr = input.closest('tr');
-                const kmlInput = tr.querySelector(`td:nth-child(${defaultOrder.findIndex(c => c.key === 'kml') + 1}) input`);
-                if(kmlInput) kmlInput.value = r.kml.toFixed(2);
-            }
-            renderTable(); 
-        } else {
-            db[index][key] = val;
-            filtrarTabela();
         }
     }
 
-    function filtrarTabela() {
-        const termo = document.getElementById('filtroTexto').value.toUpperCase();
-        const statusFiltro = document.getElementById('filtroKm').value;
-        const linhas = document.querySelectorAll('#tBody tr');
-        let contador = 0;
-        
-        linhas.forEach(tr => {
-            const inputs = Array.from(tr.querySelectorAll('input')).map(input => input.value.toUpperCase()).join(" ");
-            const matchTexto = termo === "" || inputs.includes(termo);
-            const matchStatus = statusFiltro === "ALL" || tr.dataset.status === statusFiltro;
-            if (matchTexto && matchStatus) {
-                tr.style.display = "";
-                contador++;
-            } else {
-                tr.style.display = "none";
-            }
-        });
-        document.getElementById('contadorLinhas').innerText = contador;
-    }
+    aplicarHeuristicaInvestigativa();
+}
 
-    function limparFiltros() {
-        document.getElementById('filtroTexto').value = "";
-        document.getElementById('filtroKm').value = "ALL";
-        filtrarTabela();
-    }
+function aplicarHeuristicaInvestigativa() {
+    if(baseEventos.length === 0) return alert("Nenhuma movimentação ou anomalia encontrada nos relatórios.");
 
-    function exportarExcel() {
-        const labels = defaultOrder.map(col => col.label);
-        const data = Array.from(document.querySelectorAll('#tBody tr')).filter(tr => tr.style.display !== 'none').map(tr => {
-            let obj = {};
-            Array.from(tr.querySelectorAll('input')).forEach((inp, idx) => { obj[labels[idx]] = inp.value; });
-            return obj;
-        });
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Auditoria Filtrada");
-        XLSX.writeFile(wb, "RCR_Auditoria_v50.xlsx");
-    }
+    baseEventos.sort((a, b) => a.Frota.localeCompare(b.Frota) || a.DataRaw.getTime() - b.DataRaw.getTime());
 
-    function ajustarColunas() {
-        const table = document.getElementById('mainTable');
-        const ths = table.querySelectorAll('th');
-        const trs = table.querySelectorAll('tbody tr');
-        const btn = document.getElementById('btnAjuste');
+    let totalRiscoCritico = 0;
 
-        if (!colunasAjustadas) {
-            table.style.tableLayout = 'auto';
-            table.style.minWidth = 'max-content';
+    for (let i = 0; i < baseEventos.length; i++) {
+        let ev = baseEventos[i];
+        let endUpper = ev.Endereco.toUpperCase();
 
-            ths.forEach((th, index) => {
-                let maxLen = th.querySelector('input').value.length;
-                trs.forEach(tr => {
-                    if (tr.style.display !== 'none') {
-                        const cellInput = tr.querySelectorAll('td')[index].querySelector('input');
-                        if (cellInput && cellInput.value.length > maxLen) {
-                            maxLen = cellInput.value.length;
+        if (ZONAS_SEGURAS.some(z => endUpper.includes(z))) ev.ZonaSegura = true;
+
+        if (ev.Tipo === "DRENO") {
+            for (let j = i + 1; j < Math.min(i + 15, baseEventos.length); j++) {
+                let prox = baseEventos[j];
+                if (prox.Frota !== ev.Frota) break; 
+                if (prox.Tipo === "ABASTECIMENTO") {
+                    let diffMinutos = (prox.DataRaw.getTime() - ev.DataRaw.getTime()) / 60000;
+                    if (diffMinutos >= 0 && diffMinutos <= 120) {
+                        let diffVol = Math.abs(prox.Volume - ev.Volume);
+                        if (diffVol <= 5 || diffVol / ev.Volume < 0.25) {
+                            ev.Rebote = true; prox.Rebote = true; break;
                         }
                     }
-                });
-                const newWidth = Math.max(maxLen * 8 + 20, 45); 
-                th.style.width = newWidth + 'px';
-                th.style.minWidth = newWidth + 'px';
-            });
-            document.querySelectorAll('.cell-edit, .head-edit').forEach(inp => { inp.style.width = '100%'; });
-            
-            btn.innerText = "↔️ Restaurar Largura Padrão";
-            btn.style.background = "#636e72";
-            colunasAjustadas = true;
-        } else {
-            table.style.tableLayout = 'fixed';
-            table.style.minWidth = '1800px';
-            ths.forEach(th => { th.style.width = ''; th.style.minWidth = ''; });
-            document.querySelectorAll('.cell-edit').forEach(inp => { inp.style.width = '90%'; });
-            document.querySelectorAll('.head-edit').forEach(inp => { inp.style.width = '85%'; });
-            btn.innerText = "↔️ Ajustar Colunas";
-            btn.style.background = "#0984e3";
-            colunasAjustadas = false;
+                }
+            }
+            if (!ev.Rebote && !ev.ZonaSegura) totalRiscoCritico += ev.Volume;
         }
+
+        // SCORING
+        let s = 0;
+        if (ev.Tipo === "DRENO") {
+            s = 30;
+            if (ev.Repouso) s += 20;
+            if (ev.GlobusData && ev.GlobusData.isCritical) s += 50; // ALERTA CRUZADO FATAL
+        } else if (ev.Tipo === "ALERTA GLOBUS") {
+            s = 80;
+        }
+        ev.Score = s > 100 ? 100 : (ev.Rebote || ev.ZonaSegura ? 0 : s);
     }
+
+    atualizarTopInfratores(baseEventos);
+    document.getElementById('fleetHealthBanner').style.display = 'block';
+    document.getElementById('rankingArea').style.display = 'block';
+    document.getElementById('controlPanel').style.display = 'flex';
+    document.getElementById('totalDrainText').innerText = `${totalRiscoCritico.toFixed(1)} Litros`;
+    document.getElementById('statsArea').style.display = 'flex';
+    
+    aplicarFiltros();
+}
+
+function atualizarTopInfratores(eventosLimpos) {
+    let contagem = {};
+    eventosLimpos.forEach(v => {
+        if ((v.Tipo === "DRENO" || v.Tipo === "ALERTA GLOBUS") && !v.Rebote && !v.ZonaSegura) {
+            if(!contagem[v.Frota]) contagem[v.Frota] = { total: 0, motorista: v.Motorista };
+            contagem[v.Frota].total++;
+        }
+    });
+
+    let ranking = Object.keys(contagem).map(k => ({frota: k, motorista: contagem[k].motorista, total: contagem[k].total})).sort((a,b) => b.total - a.total); 
+    let html = ranking.slice(0, 5).map(r => `
+        <div class="ranking-item" onclick="document.getElementById('fGlobal').value='${r.frota}'; setTab('ALL');">
+            <b>Veículo ${r.frota} <span style="color:var(--red)">(${r.total} Alertas)</span></b>
+            <span style="opacity:0.8">👤 ${r.motorista}</span>
+        </div>
+    `).join('');
+    document.getElementById('topInfratoresList').innerHTML = html || "<div style='font-size:11px; padding:10px;'>Sem anomalias.</div>";
+}
+
+function aplicarFiltros() {
+    const vGlobal = document.getElementById('fGlobal').value.toUpperCase();
+    const vVolMin = parseFloat(document.getElementById('fVolMin').value) || 0;
+
+    eventosExibidos = baseEventos.filter(v => {
+        let passTab = (activeTabFilter === 'ALL' || 
+                      (activeTabFilter === 'GLOBUS' && (v.Tipo === 'ALERTA GLOBUS' || (v.GlobusData && v.GlobusData.isCritical))) ||
+                      v.Tipo === activeTabFilter);
+        let passGlobal = v.Frota.includes(vGlobal) || v.Motorista.includes(vGlobal);
+        let passVol = v.Volume >= vVolMin;
+        return passTab && passGlobal && passVol;
+    });
+
+    eventosExibidos.sort((a, b) => b.Score - a.Score || b.Volume - a.Volume);
+    renderizarTabelas();
+}
+
+function renderizarTabelas() {
+    document.getElementById('bodyE').innerHTML = eventosExibidos.map(v => {
+        let css = "", colorVol = "var(--parvi-teal)", tagsHTML = "";
+
+        if (v.Tipo === "DRENO") {
+            if (v.Rebote) { css = "linha-rebote"; colorVol = "#757575"; tagsHTML += `<span class="badge bg-gray">♻️ FALSO ALARME</span>`; } 
+            else if (v.ZonaSegura) { colorVol = "var(--orange)"; tagsHTML += `<span class="badge bg-green">🛡️ MANUTENÇÃO</span>`; } 
+            else {
+                css = "heat-red"; colorVol = "var(--red)";
+                if (v.Volume > 20) tagsHTML += `<span class="badge bg-red">🚨 GRANDE VOLUME DRENADO</span>`;
+                if (v.Repouso) tagsHTML += `<span class="badge bg-black">⚠️ VEÍCULO ESTACIONADO</span>`;
+            }
+        } else if (v.Tipo === "ALERTA GLOBUS") {
+            css = "heat-red"; colorVol = "var(--purple)";
+            tagsHTML += `<span class="badge bg-purple">📉 DETECÇÃO EXCLUSIVA GLOBUS</span>`;
+        } else {
+            css = v.Rebote ? "linha-rebote" : "linha-abastecimento";
+            tagsHTML = v.Rebote ? `<span class="badge bg-gray">♻️ REBOTE SENSOR</span>` : `<span class="badge bg-teal">⛽ ABASTECIMENTO VÁLIDO</span>`;
+        }
+
+        // BLOCO MÁGICO: Exibe a prova de fogo se o Dreno bater com o Globus Ruim
+        let htmlGlobus = `<span style="color:#aaa; font-size:10px;">Sem dados de fechamento</span>`;
+        if(v.GlobusData) {
+            let colorG = v.GlobusData.isCritical ? "var(--red)" : "var(--green)";
+            let badgeG = v.GlobusData.isCritical ? `<div class="badge bg-red" style="margin-top:2px;">ABAIXO DA META (${v.GlobusData.metaInfo.min})</div>` : `<div class="badge bg-green" style="margin-top:2px;">Dentro da Meta</div>`;
+            htmlGlobus = `<b style="color:${colorG}; font-size:13px;">${v.GlobusData.kml.toFixed(2)} Km/L</b><br>${badgeG}`;
+            
+            if (v.Tipo === "DRENO" && v.GlobusData.isCritical && !v.Rebote) {
+                tagsHTML += `<div class="badge bg-globus" style="margin-top:4px; display:block;">🚨 ALERTA CRUZADO: Dreno Físico Confirmado pelo Rendimento Financeiro</div>`;
+            }
+        }
+
+        let calcSignal = v.Tipo === "ABASTECIMENTO" ? "+" : (v.Volume > 0 ? "-" : "");
+        let htmlScore = v.Score > 0 ? `<div class="risk-container"><div class="risk-bar" style="width: ${v.Score}%; background-color: ${v.Score>70?'#d93025':'#f9ab00'};"></div><div class="risk-text">${v.Score}%</div></div>` : "-";
+
+        return `<tr class="${css}">
+            <td><span class="bold-val">${v.Frota}</span><br><span class="driver-info">👤 ${v.Motorista.length > 15 ? v.Motorista.substring(0,15)+'...' : v.Motorista}</span></td>
+            <td><div class="time-cell">${v.DataIniStr}</div><div class="time-cell" style="opacity:0.6">${v.DataFimStr}</div></td>
+            <td style="padding-right:15px;">${htmlScore}</td>
+            <td><span style="font-weight: 900; font-size: 14px; color: ${colorVol};">${calcSignal}${v.Volume.toFixed(1)} L</span><br>${tagsHTML}</td>
+            <td style="text-align:center; background: rgba(0,0,0,0.02); border-left: 1px solid var(--border); border-right: 1px solid var(--border);">${htmlGlobus}</td>
+            <td class="address-box">${v.Endereco}</td>
+            <td class="col-acao">
+                ${v.Tipo !== "ALERTA GLOBUS" ? `<button class="btn-acao btn-cctv" onclick="abrirAssistenteCopiloto('${v.Frota}', '${v.DataIniStr}', '${v.DataFimStr}')">📹 Assistente Copiloto</button>` : ''}
+                <button class="btn-acao" onclick="abrirModalValidacao('${v.Frota}', '${v.DataIniStr}', '${v.Tipo}')">✅ Validar</button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('bodyV').innerHTML = baseAuditados.map(v => {
+        let badgeClassif = v.Classificacao.includes("Desvio") ? `<span class="badge bg-red">${v.Classificacao}</span>` : `<span class="badge bg-teal">${v.Classificacao}</span>`;
+        return `<tr>
+            <td><span class="bold-val">${v.Frota}</span><br><span style="font-size:9px;">${v.Motorista}</span></td>
+            <td><div class="time-cell">${v.DataIniStr}</div></td>
+            <td class="bold-val">${v.Volume.toFixed(1)} L</td>
+            <td><b style="font-size:11px;">${v.GlobusData ? v.GlobusData.kml.toFixed(2) + ' Km/L' : 'N/A'}</b></td>
+            <td>${badgeClassif}<br><span style="font-size:9px; opacity:0.8;">📝 ${v.Observacao || 'Sem obs.'}</span></td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('sE').innerText = baseEventos.length;
+    document.getElementById('sV').innerText = baseAuditados.length;
+}
+
+function exportarExcel() {
+    if (baseEventos.length === 0 && baseAuditados.length === 0) return alert("Não existem dados.");
+    const wb = XLSX.utils.book_new();
+    const exportData = [...baseEventos, ...baseAuditados].map(e => ({
+        "Placa": e.Frota,
+        "Motorista": e.Motorista,
+        "Status da Auditoria": e.Classificacao ? "Validado" : "Pendente",
+        "Classificação": e.Classificacao || "-",
+        "Risco Forense (%)": e.Score,
+        "Ocorrência": e.Tipo,
+        "Início": e.DataIniStr,
+        "Fim": e.DataFimStr,
+        "Volume (L)": e.Volume,
+        "Rendimento Globus (Km/L)": e.GlobusData ? e.GlobusData.kml.toFixed(2) : "-",
+        "Meta Globus (Km/L)": e.GlobusData ? e.GlobusData.metaInfo.min : "-",
+        "Estado": e.UF,
+        "Endereço": e.Endereco,
+        "Rebote (Erro Boia)": e.Rebote ? "SIM" : "NÃO",
+        "Alerta Cruzado": (e.GlobusData && e.GlobusData.isCritical && e.Tipo === "DRENO") ? "SIM (CRÍTICO)" : "NÃO",
+        "Link Imagens": e.CctvLink || "-"
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(exportData), "Auditoria Unificada");
+    XLSX.writeFile(wb, `Auditoria_Cruzada_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+}
 </script>
 </body>
 </html>
